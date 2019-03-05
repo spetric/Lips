@@ -54,7 +54,7 @@ function RequireParams()
     .. " gamma = float([0.1, 10] 0.2); psi = float([0, 1.57] 0); ks_factor = float([0.001, 10] 1.5); ")
 end   
 ```
-The first parameter (step) is of type int and ranges from 1 to 32 with initial value 16. The third parameter (sigma) is of type float and it ranges from 0.1 to 10 with initial value 4.0. The host application, after parsing and validating required parameters string will create various frames and allow user to adjust parameters. When script is executed, parameters are pushed as global variable.
+The first parameter (step) is of type int and ranges from 1 to 32 with initial value 16. The third parameter (sigma) is of type float and it ranges from 0.1 to 10 with initial value 4.0. The host application, after parsing and validating required parameters string will create various frames and allow user to adjust parameters. When script is executed, parameter values are pushed onto stack and global Lua variables are created according to parameter names.
 
 All required Lua scripts as well as example scripts will be also distributed with binary packages. 
 

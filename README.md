@@ -1,6 +1,6 @@
 # Lips
 ## Lua Image Processing System
-Lua Image Processing System is mainly intended to be used with Embarcadero C++/Delphi.
+Lua Image Processing System is mainly intended to be used with Embarcadero C++/Delphi on Windows platform.
 It consists of: 
 1. Lips engine - lipsEngine.dll (Embarcadero 10.1. Berlin C++ project).    
 2. OpenCV wrapper - ocvWrapper.dll (VS2017 project).
@@ -21,3 +21,18 @@ Import libraries must be copied in OpenCV folder under lipsEngine directory.
 
 ### Host application - projLips.exe
 Host (demo) application is written in Embarcadero C++ and it contains some commercial components. The source code can be modified to use standard components. From the source code, you can see how to use lipsEngine APIs and how to parse parameters requested from Lua script.
+
+###Lua script
+The first line in each Lua script intended for use with Lips engine must begin with `require("_prolog")` statement. The exception of this rule is if you want to debug your Lua script with let's say ZeroBrane Studio. In this case, the first statement must be `require("_debug")`. To call OpenCV APIs (ocvWrapper.dll), you must also include opencv script `require("_opencv")`.
+
+When script is executed, Lua engine creates following global variables:
+
+- SourceImage (shared image from Host application)
+- TargetImage (shared image from Host application)
+- SourceRoi (source image roi, initially set to complete image)
+- TargetImage (target image roi, initially set to complete image)
+- ExePath (path to host application directory)
+- ExeWin32 (boolean - true = 32 bit dll, false = 64 bit dll)
+
+All required Lua scripts as well as example scripts are also distributed with binary packages. 
+

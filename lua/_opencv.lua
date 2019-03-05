@@ -1,0 +1,79 @@
+-- set image (source, target, interm1...
+function ocv_SetImage(setName, image)
+  return Lua2Host:OpenCVSet(setName, image.Id) 
+end
+-- set OpenCv roi
+function ocv_SetRoi(setName, inpRoi)
+  local luaRoi;
+  if inpRoi then
+    luaRoi = ffi.new("TLuaRoi")
+    luaRoi.left   = inpRoi.Left
+    luaRoi.right  = inpRoi.Right
+    luaRoi.top    = inpRoi.Top
+    luaRoi.bottom = inpRoi.Bottom
+  end  
+  return Lua2Host:OpenCVSet(setName, luaRoi) 
+end
+-- create new DK and get id
+function ocv_CreateDK()
+  return Lua2Host:OpenCVGet("CreateDK")
+end
+-- set DK idx into lips engine 
+function ocv_SetDK(idx)
+  return Lua2Host:OpenCVSet("SetDkIdx", idx)
+end
+-- get last DK idx
+function ocv_GetLastDKIdx()
+  return Lua2Host:OpenCVGet("LastDKIdx")
+end
+-- clear DK
+function ocv_ClearDK(idx)
+  return Lua2Host:OpenCVSet("ClearDK", idx)
+end
+-- get last ocv exported image
+function ocv_GetLastImageId(imageType)
+  return Lua2Host:OpenCVGet("LastImageId")
+end
+-- set and process image
+function ocv_SetAndProcess(procName, srcImg, tgtImag, ...)
+  local rcSrc =  Lua2Host:OpenCVSet("source", srcImg.Id) 
+  local rcTgt =  Lua2Host:OpenCVSet("target", tgtImg.Id)   
+  if (rcSrc ~= 0 or rcTgt ~= 0) then
+     return rcSrc + rcTgt
+  end
+  return Lua2Host:OpenCVProcess(procName, ...)   
+end
+-- process image 
+function ocv_Process(procName, ...)
+  return Lua2Host:OpenCVProcess(procName, ...)   
+end
+-- flip source image inplace 
+function ocv_FlipSource(...)    
+  local arg = {...}
+  local nparams = select("#", ...)    
+  local flag = "0" 
+  if (nparams > 0) then
+      flag = arg[1]
+      if (nparams == 2) then
+          local img = arg[2]
+          local rcSrc =  Lua2Host:OpenCVSet("source", img.Id)     
+      end      
+  end
+  return ocv_Process("__flip", "source", flag)      
+end
+-- flip target image inplace 
+function ocv_FlipTarget(...)    
+  local arg = {...}
+  local nparams = select("#", ...)    
+  local flag = "0" 
+  if (nparams > 0) then
+      flag = arg[1]
+      if (nparams == 2) then
+          local img = arg[2]
+          local rcSrc =  Lua2Host:OpenCVSet("target", img.Id)     
+      end      
+  end
+  return ocv_Process("__flip", "target", flag)      
+end
+
+

@@ -36,7 +36,7 @@ When script is executed, Lua engine creates following global variables:
 - ExeWin32 (boolean - true = 32 bit dll, false = 64 bit dll)
 
 Lips engine uses Luna wrapper as C++ binding (source code included) and a set of call-back functions to communicate with host application. To set parameters from host application, script must declare RequireParams function and call `lips_RequireParams(S)` contained in prolog script to instruct host to set required parameters. The structure of parameter request string (S) passed to host must follow these production rule:
-
+   `
    S -> A | AA
    A -> token
    token -> "name = type(range initial_value);"
@@ -45,6 +45,6 @@ Lips engine uses Luna wrapper as C++ binding (source code included) and a set of
    initial_value -> according to type, must be in the range (if range is not empty)
    Parameters request example: S = "size = int([10,20] 10);"
    Parameters request example: S = "perform_something = bool([] true);"
-
+   ` 
 All required Lua scripts as well as example scripts will be also distributed with binary packages. 
 

@@ -22,7 +22,7 @@ Import libraries must be copied in OpenCV folder under lipsEngine directory.
 ### Host application - projLips.exe
 Host (demo) application is written in Embarcadero C++ and it contains some commercial components. The source code can be modified to use standard components. From the source code, you can see how to use lipsEngine APIs and how to parse parameters requested from Lua script.
 
-###Lua script
+### Lua scripts
 The first line in each Lua script intended for use with Lips engine must begin with `require("_prolog")` statement. The exception of this rule is if you want to debug your Lua script with let's say ZeroBrane Studio. In this case, the first statement must be `require("_debug")`. To call OpenCV APIs (ocvWrapper.dll), you must also include opencv script `require("_opencv")`.
 
 When script is executed, Lua engine creates following global variables:

@@ -56,5 +56,7 @@ end
 ```
 The first parameter (step) is of type int and ranges from 1 to 32 with initial value 16. The third parameter (sigma) is of type float and it ranges from 0.1 to 10 with initial value 4.0. The host application, after parsing and validating required parameters string will create various frames and allow user to adjust parameters. When script is executed, parameter values are pushed onto stack and global Lua variables are created according to parameter names.
 
-All required Lua scripts as well as example scripts will be also distributed with binary packages. 
+All required Lua scripts as well as example scripts are also distributed with binary packages. 
+NOTE: data.zip file containes face detection and face landmarks model plus style transfer models.
+This archive must be unpacked in data folder under executable directory path. 
 

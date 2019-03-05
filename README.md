@@ -5,6 +5,7 @@ It consists of:
 1. Lips engine - lipsEngine.dll (Embarcadero 10.1. Berlin C++ project).    
 2. OpenCV wrapper - ocvWrapper.dll (VS2017 project).
 3. Host application - proLips.exe (Embarcadero 10.1. Berlin C++ project).
+4. Lua scripts - required and example Lua scripts.
 
 ### Lips engine - lipsEngine.dll
 This is the core of the project. It's written in Embarcadero C++, but it can be easily modified for other compilers. It uses LuaJit  engine and ffi to pass images structure to Lua scripts. Also, it calls ocvWrapper.dll to apply a limited set of OpenCV filters from Lua script. To use this DLL from Delphi, DLL entries described in lipsEngineDLL.h must be converted to pas file, as well as structure and typedefs in lipsGlobals.h.
@@ -34,5 +35,16 @@ When script is executed, Lua engine creates following global variables:
 - ExePath (path to host application directory)
 - ExeWin32 (boolean - true = 32 bit dll, false = 64 bit dll)
 
-All required Lua scripts as well as example scripts are also distributed with binary packages. 
+Lips engine uses Luna wrapper as C++ binding (source code included) and a set of call-back functions to communicate with host application. To set parameters from host application, script must declare RequireParams function and call `lips_RequireParams(S)` contained in prolog script to instruct host to set required parameters. The structure of parameter request string (S) passed to host must follow these production rule:
+
+   S -> A | AA
+   A -> token
+   token -> "name = type(range initial_value);"
+   type  -> int | float | bool | combo | list | imagefile | imagemap
+   range -> [min, max] | []
+   initial_value -> according to type, must be in the range (if range is not empty)
+   Parameters request example: S = "size = int([10,20] 10);"
+   Parameters request example: S = "perform_something = bool([] true);"
+
+All required Lua scripts as well as example scripts will be also distributed with binary packages. 
 

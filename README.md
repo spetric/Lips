@@ -12,8 +12,8 @@ This is the core of the project. It's written in Embarcadero C++, but it can be 
 ### OpenCV wrapper - ocvWrapper.dll
 This dll is written in VS2017, because bcc compiler is not supported by OpenCV. It contains API calls for setting source/target image, for setting region of interesets and a limited set of OpenCV filters and image processing routines. As this dll is called from lipsEngine, after compiling and linking ocvWrapper.dll, import library must be created:
 
-*implib -a ocvWrapper.lib ocvWrapper.dll (for 32-bit dll)
-*mkexp -p ocvWrapper.a ocvWrapper.dll (for 64-bit dll)
+- implib -a ocvWrapper.lib ocvWrapper.dll (for 32-bit dll)
+- mkexp -p ocvWrapper.a ocvWrapper.dll (for 64-bit dll)
 
 Import libraries must be copied in OpenCV folder under lipsEngine directory.
 

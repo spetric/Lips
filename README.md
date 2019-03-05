@@ -46,5 +46,15 @@ Lips engine uses Luna wrapper as C++ binding (source code included) and a set of
    Parameters request example: S = "size = int([10,20] 10);"
    Parameters request example: S = "perform_something = bool([] true);"
    ``` 
+Example from OpenCV Gaborius.lua script:
+```
+function RequireParams()  
+   lips_RequireParams("step = int([1, 32] 16); kernel_size = int([3, 101] 31);"
+    .. " sigma = float([0.1, 10] 4.0); lambda = float([1, 30] 10);"
+    .. " gamma = float([0.1, 10] 0.2); psi = float([0, 1.57] 0); ks_factor = float([0.001, 10] 1.5); ")
+end   
+```
+The first parameter (step) is of type int and ranges from 1 to 32 with initial value 16. The third parameter (sigma) is of type float and it ranges from 0.1 to 10 with initial value 4.0. The host application, after parsing and validating required parameters string will create various frames and allow user to adjust parameters. When script is executed, parameters are pushed as global variable.
+
 All required Lua scripts as well as example scripts will be also distributed with binary packages. 
 

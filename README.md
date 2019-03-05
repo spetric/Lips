@@ -1,2 +1,2 @@
 # Lips
-Lua Image Processing Sytem
+Lua Image Processing System

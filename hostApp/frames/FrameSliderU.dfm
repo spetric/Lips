@@ -1,0 +1,53 @@
+object FrameSlider: TFrameSlider
+  Left = 0
+  Top = 0
+  Width = 281
+  Height = 50
+  TabOrder = 0
+  object box: TcxGroupBox
+    Left = 0
+    Top = 0
+    Align = alClient
+    Caption = 'Slider parameter'
+    Style.LookAndFeel.NativeStyle = False
+    Style.LookAndFeel.SkinName = 'Darkroom'
+    StyleDisabled.LookAndFeel.NativeStyle = False
+    StyleDisabled.LookAndFeel.SkinName = 'Darkroom'
+    TabOrder = 0
+    Height = 50
+    Width = 281
+    object slider: TpxSpinSlider
+      Left = 32
+      Top = 17
+      Width = 185
+      Height = 21
+      LayoutStyle = lyPixopedia
+      SliderThickness = 8
+      SliderLength = 110
+      MaxInt = 100
+      MinInt = 1
+      MaxFloat = 100.000000000000000000
+      FloatIncrementSmall = 0.200000000000000000
+      FloatIncrementLarge = 10.000000000000000000
+      FloatDecimals = 4
+      IntValue = 1
+      IntIncrementSmall = 1
+      IntIncrementLarge = 10
+      CheckLabel.Width = 1
+      CheckLabel.Height = 21
+      CheckLabel.CheckBoxSize = 10
+      CheckLabel.CheckBoxVisible = False
+      CheckLabel.SmoothText = False
+      CheckLabel.PenWidth = 1
+      CheckLabel.CaptionX = 3
+      CheckLabel.CaptionY = 3
+      CheckLabel.Shape = chkSemiLeft
+      CheckLabel.Caption = 'editMeshThickness'
+      PenWidth = 1
+      ColorEdit = 2105376
+      Color = clBtnFace
+      ParentColor = False
+      ParentBackground = True
+    end
+  end
+end

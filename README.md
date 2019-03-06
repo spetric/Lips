@@ -62,7 +62,7 @@ NOTE: data.zip file containes face detection and face landmarks model plus style
 This archive must be unpacked in data folder under executable directory path if you don't want to modify OpenCV example scripts (face swap, neural style transfer). 
 
 ### Screenshots
-Here are few screenshots of host application aftere executing various Lua scripts:
+Here are few screenshots of host application after executing various Lua scripts:
 <p align='center'>
     </br>
     <img src='screens/screen1.jpg' width='200'>

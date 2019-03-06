@@ -7,6 +7,10 @@ It consists of:
 3. Host application - projLips.exe (Embarcadero 10.1. Berlin C++ project).
 4. Lua scripts - required and example Lua scripts.
 
+<p align='center'>
+    <img src='screens/architecture.png' width='800'>
+</p>
+
 ### Lips engine - lipsEngine.dll
 This is the core of the project. It's written in Embarcadero C++, but it can be easily modified for other compilers. It uses LuaJit  engine and ffi to pass images structure to Lua scripts. Also, it calls ocvWrapper.dll to apply a limited set of OpenCV filters from Lua script. To use this DLL from Delphi, DLL entries described in lipsEngineDLL.h must be converted to pas file, as well as structure and typedefs in lipsGlobals.h.
 

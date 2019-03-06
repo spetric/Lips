@@ -61,3 +61,14 @@ All required Lua scripts as well as example scripts are also distributed with bi
 NOTE: data.zip file containes face detection and face landmarks model plus style transfer models.
 This archive must be unpacked in data folder under executable directory path if you don't want to modify OpenCV example scripts (face swap, neural style transfer). 
 
+### Screenshots
+Here are few screenshots of host application aftere executing various Lua scripts:
+<p align='center'>
+    </br>
+    <img src='screens/screen1.jpg' width='200'>
+    <img src='screens/screen2.jpg' width='200'>
+    <img src='screens/screen3.jpg' width='200'>
+    <img src='screens/screen4.jpg' width='200'>
+</p>
+
+

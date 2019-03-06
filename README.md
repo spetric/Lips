@@ -8,7 +8,7 @@ It consists of:
 4. Lua scripts - required and example Lua scripts.
 
 <p align='center'>
-    <img src='screens/architecture.png' width='800'>
+    <img src='screens/architecture.png'>
 </p>
 
 ### Lips engine - lipsEngine.dll

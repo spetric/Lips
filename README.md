@@ -41,7 +41,7 @@ Lips engine uses Luna wrapper as C++ binding (source code included) and a set of
    A -> token
    token -> "name = type(range initial_value);"
    type  -> int | float | bool | combo | list | imagefile | imagemap
-   range -> [min, max] | []
+   range -> [min, max] | [v1, v2,...,vn] | []
    initial_value -> according to type, must be in the range (if range is not empty)
    Parameters request example: S = "size = int([10,20] 10);"
    Parameters request example: S = "perform_something = bool([] true);"

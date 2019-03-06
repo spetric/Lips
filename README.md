@@ -59,5 +59,5 @@ The first parameter (step) is of type int and ranges from 1 to 32 with initial v
 All required Lua scripts as well as example scripts are also distributed with binary packages. 
 
 NOTE: data.zip file containes face detection and face landmarks model plus style transfer models.
-This archive must be unpacked in data folder under executable directory path if you don't want to modify some OpenCV example scripts. 
+This archive must be unpacked in data folder under executable directory path if you don't want to modify OpenCV example scripts (face swap, neural style transfer). 
 

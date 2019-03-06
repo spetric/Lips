@@ -4,7 +4,7 @@ Lua Image Processing System is mainly intended to be used with Embarcadero C++/D
 It consists of: 
 1. Lips engine - lipsEngine.dll (Embarcadero 10.1. Berlin C++ project).    
 2. OpenCV wrapper - ocvWrapper.dll (VS2017 project).
-3. Host application - proLips.exe (Embarcadero 10.1. Berlin C++ project).
+3. Host application - projLips.exe (Embarcadero 10.1. Berlin C++ project).
 4. Lua scripts - required and example Lua scripts.
 
 ### Lips engine - lipsEngine.dll

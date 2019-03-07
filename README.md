@@ -12,7 +12,7 @@ It consists of:
 </p>
 
 ### Lips engine - lipsEngine.dll
-This is the core of the project. It's written in Embarcadero C++, but it can be easily modified for other compilers. It uses LuaJit  engine and ffi to pass images structure to Lua scripts. Also, it calls ocvWrapper.dll to apply a limited set of OpenCV filters from Lua script. To use this DLL from Delphi, DLL entries described in lipsEngineDLL.h must be converted to pas file, as well as structure and typedefs in lipsGlobals.h.
+This is the core of the project. It's written in Embarcadero C++, but it can be easily modified for other compilers. It uses LuaJIT  engine and ffi to pass images structure to Lua scripts. Also, it calls ocvWrapper.dll to apply a limited set of OpenCV filters from Lua script. To use this DLL from Delphi, DLL entries described in lipsEngineDLL.h must be converted to pas file, as well as structure and typedefs in lipsGlobals.h.
 
 Lips engine currently supports RGB24 images and single channel 8-bit (grayscale) images. It can be TBitmap or any kind of image container with contiguous memory buffer. Only width, height, scanline alignement and pointer to image buffer are passed to Lips engine. Also, Lips engine supports RGB24 images with separated alpha channel, such as TIEBitmap image  (commercial product) available on www.imageen.com. Support for RGBA32 can be added as well, but currently it's not supported.
 

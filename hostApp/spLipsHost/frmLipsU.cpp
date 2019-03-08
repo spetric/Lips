@@ -73,10 +73,15 @@ for (int i = 0; i < 44; i++)
 	comboBlend->Properties->Items->Add(lips_IEN_BLEND[i]);
 comboBlend->ItemIndex = 0;
 luaMemo->Clear();
-loadScriptList(IncludeTrailingBackslash(ExtractFilePath(Application->ExeName))+"lua\\scripts\\");
-//FTilePath = IncludeTrailingBackslash(ExtractFilePath(Application->ExeName))+"tiles\\");
-comboShellTiles->Path = "D:\\petra\\pixopediaXE3264\\tiles\\";  // test
-comboShellTextures->Path = "D:\\petra\\pixopediaXE3264\\textures\\";  // test
+String epath = IncludeTrailingBackslash(ExtractFilePath(Application->ExeName));
+loadScriptList(epath+"lua\\scripts\\");
+#ifdef _DEBUG
+  comboShellTiles->Path = "D:\\petra\\pixopediaXE3264\\tiles\\";  // test
+  comboShellTextures->Path = "D:\\petra\\pixopediaXE3264\\textures\\";  // test
+#else
+  comboShellTiles->Path = epath + "images\\tiles\\";
+  comboShellTextures->Path = epath + "images\\textures\\";
+#endif
 // initialize lips engine
 lipsInit(IncludeTrailingBackslash(ExtractFilePath(Application->ExeName)).c_str());
 }

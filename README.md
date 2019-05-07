@@ -35,7 +35,7 @@ When script is executed, Lua engine creates following global variables:
 - SourceImage (shared image from Host application)
 - TargetImage (shared image from Host application)
 - SourceRoi (source image roi, initially set to complete image)
-- TargetImage (target image roi, initially set to complete image)
+- TargetRoi (target image roi, initially set to complete image)
 - ExePath (path to host application directory)
 - ExeWin32 (boolean - true = 32 bit dll, false = 64 bit dll)
 

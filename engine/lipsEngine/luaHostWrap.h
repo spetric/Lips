@@ -22,11 +22,14 @@ class TLuaHostWrap
 	TLuaHostWrap(lua_State *L);
 	~TLuaHostWrap();
 	void setObject(lua_State *L);
+    bool parseParams(lua_State *L, wchar_t *params);
 	// Methods we will use
 	int ShowProgress(lua_State *L);
 	int RequireParams(lua_State *L);
+	int RefreshParams(lua_State *L);
 	int SendMessage(lua_State *L);
 	int HostDialog(lua_State *L);
+    int SendCommand(lua_State *L);
 	int CreateImage(lua_State *L);
 	int LoadImage(lua_State *L);
 	int ExportImage(lua_State *L);
@@ -35,6 +38,7 @@ class TLuaHostWrap
 	int DeleteImage(lua_State *L);
 	int ConvertColorSpace(lua_State *L);
 	int ProcessImage(lua_State *L);
+    int Checker(lua_State *L);
 	int OpenCVSet(lua_State *L);
     int OpenCVGet(lua_State *L);
 	int OpenCVProcess(lua_State *L);

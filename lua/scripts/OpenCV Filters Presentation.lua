@@ -4,6 +4,10 @@ function RequireParams()
    lips_RequireParams("opencv_filter = list([blur, median, gaussian, bilateral, laplacian, sobel, box, sqrbox, dilate, erode, open, close, threshold, adaptive threshold, distance transform, Canny edge detector, contour 7x7 - filter2D ] 0);")
 end   
 function main()
+  if (not OcvEnabled) then
+     lips_SendMessage(errOcvDisabled)  
+     return
+  end   
   if (TargetImage.Plane == nil) then
       lips_SendMessage(errTargetEmpty)
       return

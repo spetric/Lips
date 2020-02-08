@@ -12,6 +12,7 @@ private:
 	cv::String objCascadeName;		// object cascade name
 	cv::String objModelName;		// obj model name
 	cv::String dnnModelName;		// dnn model name
+	cv::String dnnConfigName;		// dnn config name
 public:
 	TocvDataKeeper(int dkId);
 	~TocvDataKeeper();
@@ -24,7 +25,7 @@ public:
 	cv::dnn::Net DnnNetwork;
 	// methods
 	int LoadClassifierAndFaceModel(const wchar_t *cascade_name, const wchar_t *model_name, TFaceModelType type);
-	int DnnReadModel(const wchar_t *model_name);
+	int DnnReadModel(const wchar_t *model_name, const wchar_t *config_name = NULL);
 	int CreateObjData(int idx);
 	void ClearObjData(int idx);
 };

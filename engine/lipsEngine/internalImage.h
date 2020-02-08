@@ -84,7 +84,7 @@ class TInternalImage
 	private:
 	public:
 		// non shared
-		TInternalImage(String sType, int width, int height, unsigned int scanlineAlignment = 0, bool contiguous = true, bool asIs = false);
+		TInternalImage(String sType, int width, int height, bool addAlpha = false, unsigned int scanlineAlignment = 0, bool contiguous = true, bool asIs = false);
 		// shared
 		TInternalImage(String sType, void *scanImage, void *scanAlpha, int width, int height, unsigned int scanlineAlignment, bool shared = true, bool asIs = false);
 		virtual ~TInternalImage(void);

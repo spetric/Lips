@@ -50,6 +50,8 @@ imageCollection->Items->Items[imageCollection->Count - 1]->Picture->LoadFromFile
 //---------------------------------------------------------------------------
 String __fastcall TFrameImageSlider::SelectedImage(void)
 {
+if (image->ItemIndex < 0)
+   return "";
 return FImageList->Strings[image->ItemIndex];
 }
 //---------------------------------------------------------------------------

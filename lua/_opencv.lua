@@ -71,9 +71,17 @@ function ocv_FlipTarget(...)
       if (nparams == 2) then
           local img = arg[2]
           local rcSrc =  Lua2Host:OpenCVSet("target", img.Id)     
-      end      
+      end 
   end
-  return ocv_Process("__flip", "target", flag)      
+  return ocv_Process("__flip", "target", flag)            
+  end
+-- flip exported image inplace 
+function ocv_FlipExport(...)    
+  local arg = {...}
+  local nparams = select("#", ...)    
+  local flag = "0" 
+  if (nparams > 0) then
+      flag = arg[1]
+  end  
+  return ocv_Process("__flip", "export", flag)      
 end
-
-

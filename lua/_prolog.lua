@@ -30,7 +30,7 @@ local lfGetImage = function(imgType, ptr)
     end     
 return image
 end
-function prolog1(src24, tgt24, srcRoi, tgtRoi)
+function prolog1(src24, tgt24, srcRoi, tgtRoi, src8, tgt8, cust24, cust8, sParams)
    -- get image data
    local data, roiRect
    if (src24 == nil) then
@@ -55,18 +55,55 @@ function prolog1(src24, tgt24, srcRoi, tgtRoi)
       roiRect = ffi.cast("TLuaRoi*", tgtRoi)   
       TargetRoi = {Left = roiRect.left, Right = roiRect.right - 1, Top = roiRect.top, Bottom = roiRect.bottom - 1}
    end     
+   if (src8 == nil) then
+      SourceMask = {Id = 0, Channels = 0, Width = 0, Height = 0, Plane = nil, Alpha = nil}
+   else
+      SourceMask = lfGetImage("grayscale", src8)       
+   end 
+   if (tgt8 == nil) then
+      TargetMask = {Id = 0, Channels = 0, Width = 0, Height = 0, Plane = nil, Alpha = nil}
+   else
+      TargetMask = lfGetImage("grayscale", tgt8)       
+   end  
+   if (cust24 == nil) then
+      CustomImage = {Id = 0, Channels = 0, Width = 0, Height = 0, Plane = nil, Alpha = nil}
+   else
+      CustomImage = lfGetImage("rgb24", cust24)       
+   end   
+   if (cust8 == nil) then
+      CustomMask = {Id = 0, Channels = 0, Width = 0, Height = 0, Plane = nil, Alpha = nil}
+   else
+      CustomMask = lfGetImage("grayscale", cust8)       
+   end   
+   -- Silent params var
+   SilentParams = sParams
    -- set common roi for both images
    --Roi = {Left = SourceRoi.Left, Right = SourceRoi.Right, Top = SourceRoi.Top, Bottom = SourceRoi.Bottom}   
-   --Roi = {Left = TargetRoi.Left, Right = TargetRoi.Right, Top = TargetRoi.Top, Bottom = TargetRoi.Bottom}
-   --xxx = math.max(SourceRoi.Left, TargetRoi.Left)
+   --Roi = {Left = TargetRoi.Left, Right = TargetRoi.Right, Top = TargetRoi.Top, Bottom = TargetRoi.Bottom} 
    Roi = {Left = math.max(SourceRoi.Left, TargetRoi.Left), Right = math.min(SourceRoi.Right, TargetRoi.Right), 
                 Top = math.max(SourceRoi.Top, TargetRoi.Top), Bottom = math.min(SourceRoi.Bottom, TargetRoi.Bottom)}
-   -- TODO: set constants
+   -- set additional global vars
    errTargetEmpty = "Error: target image is empty!"
+   errOcvDisabled = "Error: OpenCV support disabled!"
+   OnMouseEvents = {}
+   MouseState = {["ssShift"] = false, ["ssAlt"] = false, ["ssCtrl"] = false, ["ssLeft"] = false, ["ssRight"] = false, ["ssMiddle"] = false} 
    -- execute main function
    main()
 end
---helper functions
+-- host functions block (additional functions called from host app)
+function hostSetRoi(roi, roiType) -- force respective roi global var
+   if (roi == nil) then
+      roiRect = {Left = 0, Right = 0, Top = 0, Bottom = 0}   
+   else
+      roiRect = ffi.cast("TLuaRoi*", roi)   
+   end         
+   if (roiType == 0) then
+      SourceRoi = {Left = roiRect.left, Right = roiRect.right - 1, Top = roiRect.top, Bottom = roiRect.bottom - 1}
+   else     
+      TargetRoi = {Left = roiRect.left, Right = roiRect.right - 1, Top = roiRect.top, Bottom = roiRect.bottom - 1}
+   end  
+end
+-- lua functions block (functions called from lua)
 function lips_ShowProgress(done, total)
   Lua2Host:ShowProgress(done, total)                 
 end
@@ -76,11 +113,17 @@ end
 function lips_RequireParams(par_str)
   Lua2Host:RequireParams(par_str)
 end
-function lips_HostDialog(par_str)
-  local rc = Lua2Host:HostDialog(par_str)
+function lips_RefreshParams()
+  Lua2Host:RefreshParams()
+end
+function lips_HostDialog(par_str, par_int)
+  local rc = Lua2Host:HostDialog(par_str, par_int)
   while (rc == nil) do
   end  
   return rc 
+end
+function lips_SendCommand(cmd_str, ...)
+  return Lua2Host:SendCommand(cmd_str, ...) 
 end
 -- Is pixel inside image boundaries
 --[[
@@ -278,16 +321,35 @@ function lips_Convert_lab2rgb(inpImage, outImage)
   end
   return Lua2Host:ConvertColorSpace(inpImage.Id, outImage.Id, "lab2rgb") 
 end  
+function lips_Check(cmd, param)
+  return Lua2Host:Checker(cmd, param) 
+end
 function lips_Blur(inpImage, outImage, radius)
   if inpImage.Channels ~= outImage.Channels then
     return false    
   end
   return Lua2Host:ProcessImage(inpImage.Id, outImage.Id, "blur", tostring(radius)) 
 end
-
-
- 
-
-
-
-
+-- test
+function lips_RegisterMouseEvent(md, mm, mu) -- mouseDown, mouseMove, mouseUp 
+  local regev
+  OnMouseEvents["OnMouseDown"] = md   
+  OnMouseEvents["OnMouseMove"] = mm
+  OnMouseEvents["OnMouseUp"]   = mu   
+  if (md ~= nil) then
+      regev = "true"
+  else
+      regev = "false"
+  end
+  if (mm ~= nil) then
+      regev = regev .. ", true"
+  else
+      regev = regev .. ", false"
+  end
+  if (mu ~= nil) then
+      regev = regev .. ", true"
+  else
+      regev = regev .. ", false"
+  end
+  Lua2Host:SendCommand("RegisterMouseEvent", regev)   
+end

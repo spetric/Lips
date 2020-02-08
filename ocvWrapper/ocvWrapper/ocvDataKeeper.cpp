@@ -45,13 +45,20 @@ int TocvDataKeeper::LoadClassifierAndFaceModel(const wchar_t *cascade_name, cons
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
-// Read dnn model
+// Read dnn model 
 //-------------------------------------------------------------------------------------------------
-int TocvDataKeeper::DnnReadModel(const wchar_t *model_name)
+int TocvDataKeeper::DnnReadModel(const wchar_t *model_name, const wchar_t *config_name)
 {
-	std::wstring ws(model_name);
-	dnnModelName = String(ws.begin(), ws.end());
-	DnnNetwork = dnn::readNet(dnnModelName);
+	std::wstring wsm(model_name);
+	dnnModelName = String(wsm.begin(), wsm.end());
+	if (config_name)
+	{
+		std::wstring wsc(config_name);
+		dnnConfigName = String(wsc.begin(), wsc.end());
+		DnnNetwork = dnn::readNet(dnnModelName, dnnConfigName);
+	}
+	else
+		DnnNetwork = dnn::readNet(dnnModelName);
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------

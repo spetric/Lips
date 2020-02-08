@@ -5,15 +5,14 @@
 #pragma package(smart_init)
 //---------------------------------------------------------------------------
 // non shared
-TInternalImage::TInternalImage(String sType, int width, int height, unsigned int scanlineAlignment, bool contiguous, bool asIs)
+TInternalImage::TInternalImage(String sType, int width, int height, bool addAlpha, unsigned int scanlineAlignment, bool contiguous, bool asIs)
 {
 type = sType;
 speOrientation orient = asIs ? orAsIs : orInvert;
+alpha = 0;
 if (type == TYPE_B3)
    {
    TLuaImageByte3 *lImage = new TLuaImageByte3;
-   lImage->alpha = 0;
-   lImage->alphaStride = 0;
    spImage<ptRGB> *img = new spImage<ptRGB>(width, height, scanlineAlignment, contiguous, orient);
    image = static_cast<void*>(img);
    lImage->channels = 3;
@@ -21,6 +20,17 @@ if (type == TYPE_B3)
    lImage->align  = img->Alignment();
    lImage->orientation = (int)orient;
    lImage->plane = (TTypeByte3**)img->Data();
+   if (addAlpha)
+	  {
+	  alpha = new spImage<ptGray>(width, height, scanlineAlignment, contiguous, orient);
+	  lImage->alpha = (TTypeByte1**) alpha->Data();
+	  lImage->alphaStride = alpha->Stride();
+	  }
+   else
+	  {
+	  lImage->alpha = 0;
+	  lImage->alphaStride = 0;
+	  }
    luaImage = (TLuaImageVoid*)(lImage);
    }
 else if (type == TYPE_B1)
@@ -55,12 +65,13 @@ luaImage->width = width;
 luaImage->height = height;
 }
 //---------------------------------------------------------------------------
-// shared
+// shared / non-shared
 TInternalImage::TInternalImage(String sType, void *scanImage, void *scanAlpha, int width, int height,
 							   unsigned int scanlineAlignment, bool shared, bool asIs)
 {
 type = sType;
 speOrientation orient = asIs ? orAsIs : orInvert;
+alpha = 0;
 if (type == TYPE_B3)
    {
    TLuaImageByte3 *lImage = new TLuaImageByte3;
@@ -151,6 +162,8 @@ else if (type == TYPE_F3)
    TLuaImageFloat3 *lImage = (TLuaImageFloat3*)luaImage;
    delete lImage;
    }
+if (alpha)
+   delete alpha;
 }
 //---------------------------------------------------------------------------
 

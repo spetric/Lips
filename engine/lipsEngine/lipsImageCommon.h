@@ -33,8 +33,8 @@ class TImageCommon
 			 TLuaImageVoid *outImg;
 			 };
 		// host images - filled from main engine
-		static TLuaImageByte3 *SourceImage, *TargetImage;
-		static TLuaImageByte1 *MaskImage;
+		static TLuaImageByte3 *SourceImage, *TargetImage, *CustomImage;
+		static TLuaImageByte1 *SourceMask, *TargetMask, *CustomMask;
 		// host rois - filled from main engine
 		static TLuaRoi *SourceRoi, *TargetRoi;
         //

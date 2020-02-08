@@ -2,10 +2,15 @@ require ("_prolog")
 require ("_opencv")
 function RequireParams()  
    lips_RequireParams("single_face = bool([] true); extrapolate = bool([] true);"
+    .. " result_as_new_image = bool([] true);"
     .. " scale_factor = float([1.0, 10.0] 1.05); min_neighbours = int([1, 15] 3);"
     .. " min_size = int([5, 150] 30);")
 end   
 function main()
+  if (not OcvEnabled) then
+     lips_SendMessage(errOcvDisabed)  
+     return
+  end     
   if (TargetImage.Plane == nil) then
       lips_SendMessage(errTargetEmpty)
       return
@@ -15,8 +20,18 @@ function main()
   ..tostring(min_neighbours)..", "..tostring(min_size)   
   -- path to cascade file (use ExePath)
   local cascade_name = ExePath.."data/face/lbpcascade_frontalface_improved.xml"
+  if (not lips_Check("FileExists", cascade_name)) then
+    lips_SendMessage("Error: Cascade file missing.")  
+  lips_HostDialog('Cascade file missing. IMHO, face package is probably missing. Download face package: <A href="https://github.com/spetric/Lips/releases/download/v2.0/data_face.zip">data_face.zip</A><br> and unpack it under <b>data/face/</b> folder.', 2)           
+    return
+  end    
   -- path to model file
   local model_name  = ExePath.."data/face/face_landmark_model.dat"
+  if (not lips_Check("FileExists", model_name)) then
+    lips_SendMessage("Error: Model file missing.")  
+  lips_HostDialog('Model file missing. IMHO, face package is probably missing. Download face package: <A href="https://github.com/spetric/Lips/releases/download/v2.0/data_face.zip">data_face.zip</A><br> and unpack it under <b>data/face/</b> folder.', 2)               
+    return
+  end      
   -- load classifier and face model
   lips_SendMessage("Loading classifier and face model.")
   -- create empty DK
@@ -36,11 +51,10 @@ function main()
   ocv_SetImage("source", inpImage)
   ocv_SetImage("target", outImage) 
   --[[
-    NOTE:
-    OpenCV Mat is "as is", and our images are inverted (Delphi/BCB TBitmap or TIEBitmap).
-    So, we need to flip images because face swapping does not work well on upside-down images    
+    NOTE: OpenCV Mat is "as is", and our images are inverted (Delphi/BCB TBitmap or TIEBitmap).
+    So, we need to flip images because face swapping does not work well on upside-down images.    
   --]]
-  -- flip images (two underscores means inplace: for now only flipping inline is supported)
+  -- flip images 
   ocv_FlipSource()
   ocv_FlipTarget()  
   -- source image landmarks 
@@ -57,6 +71,10 @@ function main()
   ocv_Process("SwapFaces")  
   -- flip output back, so that we can copy it to TBimtap or TIEBitmap
   ocv_FlipTarget()    
-  lips_ExportImage(outImage, "swapped face")
+  if (result_as_new_image) then
+      lips_ExportImage(outImage, "swapped face")
+  else
+      lips_ExportImage(outImage, "asTarget")
+  end  
   ocv_ClearDK(dkIdx)
 end

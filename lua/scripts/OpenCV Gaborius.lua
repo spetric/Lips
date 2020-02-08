@@ -6,6 +6,10 @@ function RequireParams()
     .. " gamma = float([0.1, 10] 0.2); psi = float([0, 1.57] 0); ks_factor = float([0.001, 10] 1.5); ")
 end   
 function main()
+  if (not OcvEnabled) then
+     lips_SendMessage(errOcvDisabled) 
+     return     
+  end     
   if (TargetImage.Plane == nil) then
       lips_SendMessage(errTargetEmpty)
       return

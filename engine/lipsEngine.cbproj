@@ -4,8 +4,8 @@
         <ProjectVersion>18.2</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Config Condition="'$(Config)'==''">Release</Config>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Library</AppType>
     </PropertyGroup>
@@ -55,7 +55,14 @@
         <Cfg_2>true</Cfg_2>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win64)'!=''">
+        <Cfg_2_Win64>true</Cfg_2_Win64>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <ILINK_DelayLoadDll>ocvWrapper.dll;$(ILINK_DelayLoadDll)</ILINK_DelayLoadDll>
         <ILINK_DisableIncrementalLinking>true</ILINK_DisableIncrementalLinking>
         <BCC_UseClassicCompiler>false</BCC_UseClassicCompiler>
         <AllPackageLibs>vcl.lib;rtl.lib</AllPackageLibs>
@@ -83,7 +90,6 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <Manifest_File>(None)</Manifest_File>
-        <ILINK_LibraryPath>D:\petra\pixopediaXE3264\lipsEngine\OpenCV\;D:\petra\pixopediaXE3264\lipsEngine\Simd\;D:\petra\pixopediaXE3264\Win32\Debug\;D:\petra\pixopediaXE3264\lipsEngine\lua_jit\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <PackageImports>appanalytics;cxDataRS24;cxEditorsRS24;cxExportRS24;cxGridRS24;cxLibraryRS24;cxPageControlRS24;cxPivotGridChartRS24;cxPivotGridOLAPRS24;cxPivotGridRS24;cxTreeListRS24;cxVerticalGridRS24;DataSnapNativeClient;DataSnapServerMidas;dsnapxml;dxADOServerModeRS24;dxComnRS24;dxCoreRS24;dxDBXServerModeRS24;dxFireDACServerModeRS24;dxGDIPlusRS24;dxHttpIndyRequestRS24;dxLayoutControlRS24;dxmdsRS24;dxOfficeCoreRS24;dxPSCoreRS24;dxPScxCommonRS24;dxPScxExtCommonRS24;dxPScxGridLnkRS24;dxPScxPCProdRS24;dxPScxPivotGridLnkRS24;dxPScxTLLnkRS24;dxPScxVGridLnkRS24;dxPSDBTeeChartRS24;dxPSdxLCLnkRS24;dxPSdxSpreadSheetLnkRS24;dxPSLnksRS24;dxPSTeeChartRS24;dxServerModeRS24;dxSkinBlackRS24;dxSkinBlueprintRS24;dxSkinBlueRS24;dxSkinCaramelRS24;dxSkinCoffeeRS24;dxSkinDarkRoomRS24;dxSkinDarkSideRS24;dxSkinDevExpressDarkStyleRS24;dxSkinDevExpressStyleRS24;dxSkinFoggyRS24;dxSkinGlassOceansRS24;dxSkinHighContrastRS24;dxSkiniMaginaryRS24;dxSkinLilianRS24;dxSkinLiquidSkyRS24;dxSkinLondonLiquidSkyRS24;dxSkinMcSkinRS24;dxSkinMetropolisDarkRS24;dxSkinMetropolisRS24;dxSkinMoneyTwinsRS24;dxSkinOffice2007BlackRS24;dxSkinOffice2007BlueRS24;dxSkinOffice2007GreenRS24;dxSkinOffice2007PinkRS24;dxSkinOffice2007SilverRS24;dxSkinOffice2010BlackRS24;dxSkinOffice2010BlueRS24;dxSkinOffice2010SilverRS24;dxSkinOffice2013DarkGrayRS24;dxSkinOffice2013LightGrayRS24;dxSkinOffice2013WhiteRS24;dxSkinOffice2016ColorfulRS24;dxSkinOffice2016DarkRS24;dxSkinPumpkinRS24;dxSkinsCoreRS24;dxSkinSevenClassicRS24;dxSkinSevenRS24;dxSkinSharpPlusRS24;dxSkinSharpRS24;dxSkinSilverRS24;dxSkinSpringTimeRS24;dxSkinStardustRS24;dxSkinSummer2008RS24;dxSkinTheAsphaltWorldRS24;dxSkinValentineRS24;dxSkinVisualStudio2013BlueRS24;dxSkinVisualStudio2013DarkRS24;dxSkinVisualStudio2013LightRS24;dxSkinVS2010RS24;dxSkinWhiteprintRS24;dxSkinXmas2008BlueRS24;dxSpreadSheetConditionalFormattingDialogsRS24;dxSpreadSheetCoreConditionalFormattingDialogsRS24;dxSpreadSheetCoreDialogsRS24;dxSpreadSheetCoreRS24;dxSpreadSheetReportDesignerRS24;dxSpreadSheetRS24;dxThemeRS24;emsclient;emsclientfiredac;emsedge;emshosting;FireDACCommonODBC;FireDACDSDriver;FireDACInfxDriver;FireDACMongoDBDriver;FireDACTDataDriver;fmxFireDAC;frx24;frxDB24;frxe24;frxTee24;PKIECtrl24;PKIEDB24;QRWRunDXE10_1_w64;RESTBackendComponents;SigmaPiPack;soapmidas;soapserver;tethering;tmsdXE10;tmsexdXE10;tmswizdXE10;tmsxlsdXE10;vclwinx;wpViewPDF02;$(PackageImports)</PackageImports>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -137,9 +143,13 @@
         <TASM_Debugging>None</TASM_Debugging>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <LinkPackageStatics>vcl.lib;rtl.lib</LinkPackageStatics>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <Manifest_File>(None)</Manifest_File>
         <VerInfo_Locale>1033</VerInfo_Locale>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
+        <LinkPackageStatics>vcl.lib;rtl.lib</LinkPackageStatics>
     </PropertyGroup>
     <ItemGroup>
         <PCHCompile Include="lipsEnginePCH1.h">
@@ -310,7 +320,16 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployClass Name="ProjectiOSDeviceResourceRules"/>
+                <DeployClass Name="DependencyModule">
+                    <Platform Name="Win32">
+                        <Operation>0</Operation>
+                        <Extensions>.dll;.bpl</Extensions>
+                    </Platform>
+                    <Platform Name="OSX32">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                </DeployClass>
                 <DeployClass Name="ProjectOSXResource">
                     <Platform Name="OSX32">
                         <RemoteDir>Contents\Resources</RemoteDir>
@@ -649,16 +668,7 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <DeployClass Name="DependencyModule">
-                    <Platform Name="Win32">
-                        <Operation>0</Operation>
-                        <Extensions>.dll;.bpl</Extensions>
-                    </Platform>
-                    <Platform Name="OSX32">
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                </DeployClass>
+                <DeployClass Name="ProjectiOSDeviceResourceRules"/>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>

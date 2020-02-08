@@ -2,6 +2,7 @@
 #ifndef lipsEngineWrapperH
 #define lipsEngineWrapperH
 #include <Types.hpp>
+#include <Classes.hpp>
 #include "lua.hpp"
 #include "luaHostWrap.h"
 //---------------------------------------------------------------------------
@@ -11,41 +12,55 @@
 class lipsEngineWrapper
   {
   public:
-	  enum TSurfaceType {stSource = 0, stTarget, stMask};
+	  enum TSurfaceType {stSource = 0, stTarget, stSourceMask, stTargetMask, stCustom, stCustomMask};
   private:
-	  AnsiString FLuaErrorString, FScript, FExePath;
-      bool FExeWin32;
+	  AnsiString FLuaErrorString, FScript, FExePath, FSilentParams;
+      bool FExeWin32, FOcvAlive, FOcvInitialized, FMouseEventsOn;
 	  int FResult;
 	  TLuaHost *FHostProc;
 	  lua_State *FLs;
 	  //spImage<ptRGB> *FII, *FOI;
-	  TInternalImage *FSourceImage, *FTargetImage;
+	  TInternalImage *FSourceImage, *FTargetImage, *FSourceMask, *FTargetMask, *FCustomImage, *FCustomMask;
 	  //TLuaImageByte3 *FInputImage, *FOutputImage;
 	  //TLuaImageByte1 *FMaskImage;
 	  TLuaRoi *FSourceRoi, *FTargetRoi;
+	  String stringBetween(String input, String left, String right, String &remainder);
 	  void getErrorMessage(void);
-      String stringBetween(String input, String left, String right, String &remainder);
+	  int  parseParams(lua_State *L, wchar_t *params);
+	  void setMouseStatus (const char *index, bool value);
+      void setLuaRoi(TLuaRoi *lRoi, int type);
   public:
 	  lipsEngineWrapper(void);
 	  virtual ~lipsEngineWrapper(void);
 	  // public methods
-	  bool Initialize(wchar_t *exePath);
-      void Clean(void);
+	  bool Initialize(wchar_t *exePath, bool initializeOcv);
+      bool Clean(void);
 	  bool SetImage(TSurfaceType type, void *scanImage, void *scanAlpha, int width, int height, unsigned int scanlineAlignment);
       bool PushImage(wchar_t * type, void *scanImage, void *scanAlpha, int width, int height, unsigned int scanlineAlignment);
 	  bool PushTableImage(wchar_t *luaName, wchar_t * type, void *scanImage, void *scanAlpha, int width, int height, unsigned int scanlineAlignment);
-	  bool SetRoi(TSurfaceType type, TRect *roi);
+	  bool SetRoi(TSurfaceType type, TRect *roi, bool push2lua);
+	  bool SetSilentParams(wchar_t *silentParams);
+	  bool SetCustomRoi(TRect *roi);
+	  bool SetCustomImage(void *scanImage, void *scanAlpha, int width, int height, unsigned int scanlineAlignment, bool shared);
+	  bool SetCustomMask(void *scanImage, int width, int height, unsigned int scanlineAlignment, bool shared);
 	  int LoadScript(wchar_t *path);
 	  int ExecuteScript(wchar_t *params);
+	  int RefreshParams(wchar_t *params);
+	  int ExecuteMouseEvent(unsigned int event, TShiftState State, int X, int Y);
 	  // public vars
 	  TLuaProgress ProgressCb;
 	  TLuaString RequireCb;
+	  TLuaString RefreshCb;
 	  TLuaString MessageCb;
-	  TLuaLoadImage LoadImageCb;
+	  TLuaDoubleString LoadImageCb;
 	  TLuaExportImage ExportImageCb;
-      TLuaHostDialog  HostDialogCb;
+	  TLuaHostDialog  HostDialogCb;
+      TLuaDoubleString CommandCb;
   // R/O properties
   __property AnsiString LuaErrorMessage = {read = FLuaErrorString};
+  __property bool OcvInstalled  = {read = FOcvAlive};
+  __property bool OcvInitialized = {read = FOcvInitialized};
+  __property bool Mouse2Lua = {read = FMouseEventsOn, write = FMouseEventsOn};
   /*
   __property spSurfaceContainer* Surf = {read = FSurf};
   __property spRenderDataKeeper* RenderData = {read = FRenderData};

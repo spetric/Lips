@@ -15,7 +15,7 @@ struct TExportImage
 	};
 typedef void (__stdcall *TLuaProgress)(int, int);
 typedef void (__stdcall *TLuaString)(const char *);
-typedef bool (__stdcall *TLuaLoadImage)(const char *, const char *);
+typedef bool (__stdcall *TLuaDoubleString)(const char *, const char *);
 typedef bool (__stdcall *TLuaExportImage)(TExportImage *expImage, bool asIs);
-typedef int  (__stdcall *TLuaHostDialog)(const char *);
+typedef int  (__stdcall *TLuaHostDialog)(const char *, int type);   // 0 - info, 1 - dialog
 #endif

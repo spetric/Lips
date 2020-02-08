@@ -11,6 +11,10 @@ function RequireParams()
     .. " vSigma = float([0, 10] 0);")
 end   
 function main()
+  if (not OcvEnabled) then
+     lips_SendMessage(errOcvDisabed)  
+     return
+  end       
   if (TargetImage.Plane == nil) then
       lips_SendMessage(errTargetEmpty)
       return

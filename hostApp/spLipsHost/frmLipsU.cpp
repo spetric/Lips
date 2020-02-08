@@ -8,6 +8,7 @@
 #include "FrameImageSliderU.h"
 #include "FrameImageComboU.h"
 #include "FrameListBoxU.h"
+#include "FrameShellComboBoxU.h"
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma link "hyiedefs"
@@ -53,7 +54,7 @@ TfrmLips *frmLips;
 __fastcall TfrmLips::TfrmLips(TComponent* Owner)
 	: TForm(Owner)
 {
-Caption = Caption + " 2019.03. ";
+Caption = Caption + " 2020.02. ";
 #ifdef __WIN32__
 	Caption = Caption + " 32-bit";
 #else
@@ -65,9 +66,14 @@ IEGlobalSettings()->MsgLanguage = msEnglish;
 IEGlobalSettings()->EnableTheming = true;
 FImageList = new TList();
 FSelRect = 0;
+FSourceMask = 0;
+FTargetMask = 0;
+FSelectionRoiEnabled = true;
 FScriptLoaded = false;
+FMouseEvent2Lua = false;
 FLuaScripts = new TStringList();
 labStatus->Caption = "";
+labInfo->Caption = "";
 // fill blender combo
 for (int i = 0; i < 44; i++)
 	comboBlend->Properties->Items->Add(lips_IEN_BLEND[i]);
@@ -88,9 +94,10 @@ lipsInit(IncludeTrailingBackslash(ExtractFilePath(Application->ExeName)).c_str()
 //---------------------------------------------------------------------------
 __fastcall TfrmLips::~TfrmLips()
 {
-ieView->LayersClear(false);
+//ieViewSingle->LayersClear(false);
+ieViewLayers->LayersClear(false);
 lipsClose();
-TCommonHelper::DeleteIPList();
+TLipsHelper::DeleteIPList();
 delete FLuaScripts;
 FLuaScripts = 0;
 deleteImages();
@@ -98,20 +105,37 @@ delete FImageList;
 FImageList = 0;
 if (FSelRect)
    delete FSelRect;
+if (FSourceMask)
+   delete FSourceMask;
+if (FTargetMask)
+   delete FTargetMask;
+if (FSelection.Image)
+   delete FSelection.Image;
+if (FSelection.Mask)
+   delete FSelection.Mask;
 }
 //---------------------------------------------------------------------------
 void __fastcall TfrmLips::FormShow(TObject *Sender)
 {
 pageControl->ActivePageIndex = 0;
 pageMVControl->ActivePageIndex = 0;
-ieView->Blank();
-ieView->SelectionMaskDepth = 8;
+ieViewSingle->Blank();
+ieViewSingle->SelectionMaskDepth = 8;
+ieViewLayers->Blank();
+ieViewLayers->SelectionMaskDepth = 8;
+layersMView->AttachedImageEnView = ieViewLayers;
 // connect luaConsole with memo field
-TCommonHelper::luaConsole = luaMemo;
+TLipsHelper::luaConsole = luaMemo;
 // connect paramBuilder - where to go on require params
-TCommonHelper::luaParamBuilder = luaParamBuilder;
+TLipsHelper::luaParamBuilder = luaParamBuilder;
+// connect paramRefresh - where to go on refresh params
+TLipsHelper::luaParamRefresh = luaParamRefresh;
 // connect inportImage - where to go when lua exports image
-TCommonHelper::luaImportImage = luaImportImage;
+TLipsHelper::luaImportImage = luaImportImage;
+// connect layers view
+TLipsHelper::luaHostCommand = luaCommand;
+// connect image list
+TLipsHelper::luaImageList = FImageList;
 }
 //---------------------------------------------------------------------------
 // load soruce image and copy it to target image
@@ -120,7 +144,7 @@ void __fastcall TfrmLips::itemOpenSTClick(TObject *Sender)
 if (openDialog->Execute())
    {
    deleteImages();
-   ieView->Zoom = 100;
+   ieViewSingle->Zoom = 100;
    TImageEnIO *ienIO = new TImageEnIO(this);
    ienIO->LoadFromFile(openDialog->FileName);
    // add source image
@@ -139,6 +163,7 @@ if (openDialog->Execute())
    mViewImageSelect(this, mView->SelectedImage);
    checkImageFrames();
    delete ienIO;
+   resetMouseEvents();
    }
 }
 //---------------------------------------------------------------------------
@@ -148,7 +173,7 @@ void __fastcall TfrmLips::itemOpenSClick(TObject *Sender)
 if (openDialog->Execute())
    {
    deleteImages(2);
-   ieView->Zoom = 100;
+   ieViewSingle->Zoom = 100;
    TImageEnIO *ienIO = new TImageEnIO(this);
    ienIO->LoadFromFile(openDialog->FileName);
    // append or replace image
@@ -158,6 +183,7 @@ if (openDialog->Execute())
 	  FImageList->Add(new TIEBitmap(ienIO->IEBitmap));    		// source
 	  mView->InsertImage(0);
 	  mView->SetImage(0, ienIO->IEBitmap);
+	  mView->ImageTag[0] = -1;
 	  mView->ImageTopText[0] =  "source";
 	  }
    else
@@ -168,10 +194,10 @@ if (openDialog->Execute())
 	  mView->SetImage(0, ienIO->IEBitmap);
 	  }
    mView->SelectedImage = 0;
-   mView->ImageTag[0] = -1;
    mViewImageSelect(this, mView->SelectedImage);
    checkImageFrames();
    delete ienIO;
+   resetMouseEvents();
    }
 }
 //---------------------------------------------------------------------------
@@ -186,7 +212,7 @@ if (mView->ImageCount == 0)
 if (openDialog->Execute())
    {
    deleteImages(2);
-   ieView->Zoom = 100;
+   ieViewSingle->Zoom = 100;
    TImageEnIO *ienIO = new TImageEnIO(this);
    ienIO->LoadFromFile(openDialog->FileName);
    // append or replace image
@@ -196,6 +222,7 @@ if (openDialog->Execute())
 	  FImageList->Add(new TIEBitmap(ienIO->IEBitmap));    		// target
 	  mView->InsertImage(1);
 	  mView->SetImage(1, ienIO->IEBitmap);
+	  mView->ImageTag[1] = -2;
 	  mView->ImageTopText[1] =  "target";
 	  }
    else
@@ -206,7 +233,6 @@ if (openDialog->Execute())
 	  mView->SetImage(1, ienIO->IEBitmap);
 	  }
    mView->SelectedImage = 1;
-   mView->ImageTag[1] = -2;
    mViewImageSelect(this, mView->SelectedImage);
    delete ienIO;
    }
@@ -221,38 +247,38 @@ if (mView->ImageCount == 0)
    return;
    }
 if (saveDialog->Execute())
-   ieView->IO->SaveToFile(saveDialog->FileName);
+   ieViewSingle->IO->SaveToFile(saveDialog->FileName);
 }
 //---------------------------------------------------------------------------
 // onselect mView event
 void __fastcall TfrmLips::mViewImageSelect(TObject *Sender, int idx)
 {
 TIEBitmap *map = static_cast<TIEBitmap*>(FImageList->Items[idx]);
-ieView->SetExternalBitmap(map);
-ieView->Update();
+ieViewSingle->SetExternalBitmap(map);
+ieViewSingle->Update();
 }
 //---------------------------------------------------------------------------
 // onselect layersMView event
 void __fastcall TfrmLips::layersMViewImageSelect(TObject *Sender, int idx)
 {
-editBlend->IntValue = ieView->Layers[idx]->Transparency;
-comboBlend->ItemIndex = ieView->Layers[idx]->Operation;
+editBlend->IntValue = ieViewLayers->Layers[idx]->Transparency;
+comboBlend->ItemIndex = ieViewLayers->Layers[idx]->Operation;
 panBlender->Enabled = (bool)idx;
 }
 //---------------------------------------------------------------------------
 // onchange transparency
 void __fastcall TfrmLips::editBlendValueChange(TObject *Sender)
 {
-ieView->Layers[ieView->LayersCurrent]->Transparency = editBlend->IntValue;
-ieView->Update();
+ieViewLayers->Layers[ieViewLayers->LayersCurrent]->Transparency = editBlend->IntValue;
+ieViewLayers->Update();
 }
 //---------------------------------------------------------------------------
 // onchange blend mode
 void __fastcall TfrmLips::comboBlendPropertiesChange(TObject *Sender)
 {
 //
-ieView->Layers[ieView->LayersCurrent]->Operation = (TIERenderOperation)(comboBlend->ItemIndex);
-ieView->Update();
+ieViewLayers->Layers[ieViewLayers->LayersCurrent]->Operation = (TIERenderOperation)(comboBlend->ItemIndex);
+ieViewLayers->Update();
 }
 //---------------------------------------------------------------------------
 // select seletion type
@@ -260,26 +286,26 @@ void __fastcall TfrmLips::ItemSelectionClick(TObject *Sender)
 {
 TMenuItem *item = static_cast <TMenuItem*>(Sender);
 item->Checked = !item->Checked;
-ieView->MouseInteract = TIEMouseInteract();
-ieView->Deselect();
+ieViewSingle->MouseInteract = TIEMouseInteract();
+ieViewSingle->Deselect();
 if (!item->Checked)
    return;
 switch (item->Tag)
 	{
 	case 0:
-		 ieView->MouseInteract  = TIEMouseInteract()<<miSelect;
+		 ieViewSingle->MouseInteract  = TIEMouseInteract()<<miSelect;
 		 break;
 	case 1:
-		 ieView->MouseInteract  = TIEMouseInteract()<<miSelectCircle;
+		 ieViewSingle->MouseInteract  = TIEMouseInteract()<<miSelectCircle;
 		 break;
 	case 2:
-		 ieView->MouseInteract  = TIEMouseInteract()<<miSelectLasso;
+		 ieViewSingle->MouseInteract  = TIEMouseInteract()<<miSelectLasso;
 		 break;
 	case 3:
-		 ieView->MouseInteract  = TIEMouseInteract()<<miSelectPolygon;
+		 ieViewSingle->MouseInteract  = TIEMouseInteract()<<miSelectPolygon;
 		 break;
 	case 4:
-		 ieView->MouseInteract  = TIEMouseInteract()<<miSelectMagicWand;
+		 ieViewSingle->MouseInteract  = TIEMouseInteract()<<miSelectMagicWand;
 		 break;
 	default:
 		 ;
@@ -289,18 +315,53 @@ switch (item->Tag)
 // clear selection
 void __fastcall TfrmLips::itemClearSelectionClick(TObject *Sender)
 {
-ieView->Deselect();
+ieViewSingle->Deselect();
 }
 //---------------------------------------------------------------------------
 // invert selection
 void __fastcall TfrmLips::itemInvertSelectionClick(TObject *Sender)
 {
-ieView->InvertSelection();
+ieViewSingle->InvertSelection();
+}
+//---------------------------------------------------------------------------
+void __fastcall TfrmLips::itemSelected2BufferClick(TObject *Sender)
+{
+TRect sr;
+TIEBitmap *mapSelection;
+if (FSelection.Image)
+   delete FSelection.Image;
+if (FSelection.Mask)
+   delete FSelection.Mask;
+FSelection.Image = 0;
+FSelection.Mask = 0;
+if (ieViewSingle->Selected)
+   {
+   sr.left   = ieViewSingle->SelectedRect.x;
+   sr.right  = ieViewSingle->SelectedRect.width + sr.left;
+   sr.top    = ieViewSingle->SelectedRect.y;
+   sr.bottom = ieViewSingle->SelectedRect.height + sr.top;
+   // save roi
+   FSelection.Roi = sr;
+   // selection image
+   mapSelection = new TIEBitmap(sr.Width(), sr.Height(), ie24RGB);
+   ieViewSingle->IEBitmap->CopyRectTo(mapSelection,  sr.left,  sr.top, 0, 0, mapSelection->Width, mapSelection->Height);
+   // save selection image
+   FSelection.Image = mapSelection;
+   // selection mask
+   TIEBitmap *mapMask = new TIEBitmap();
+   mapMask->CopyFromTIEMask(ieViewSingle->SelectionMask);
+   mapSelection = new TIEBitmap(sr.Width(), sr.Height(), ie8g);
+   mapMask->CopyRectTo(mapSelection,  sr.left,  sr.top, 0, 0, mapSelection->Width, mapSelection->Height);
+   delete mapMask;
+   // save selection mask
+   FSelection.Mask = mapSelection;
+   }
 }
 //---------------------------------------------------------------------------
 // execute sctipr
 void __fastcall TfrmLips::btnExecuteClick(TObject *Sender)
 {
+FSelectionRoiEnabled = true;
 if (mView->ImageCount == 0)
    {
    labStatus->Caption = "Error: Source image not loaded!";
@@ -319,11 +380,10 @@ luaMemo->Lines->Add("Processing...");
 //luaConsole->Lines->Strings[0] = "Executing script...";
 //luaConsole->Lines->Strings[1] = "Processing...";
 // set helper var
-TCommonHelper::luaStart = Time();
+TLipsHelper::luaStart = Time();
 // target image (if exists)
 TIEBitmap *mapTgt = 0;
-if (FImageList->Count > 1)
-   mapTgt = static_cast<TIEBitmap*>(FImageList->Items[1]);
+FExportedAsTarget = false;
 // create lua image structure
 createLipSurface();
 int result;
@@ -339,46 +399,59 @@ if (result)
   }
 else
   {
+  if (FMouseEvent2Lua)
+     return;
+  if (FImageList->Count > 1)
+	 mapTgt = static_cast<TIEBitmap*>(FImageList->Items[1]);
   labStatus->Caption = "Done!";
   String fmtt;
-  DateTimeToString(fmtt, "hh::nn:ss.zzz", (Time() - TCommonHelper::luaStart));
+  DateTimeToString(fmtt, "hh::nn:ss.zzz", (Time() - TLipsHelper::luaStart));
   luaMemo->Lines->Strings[0] = "Running..." + fmtt;
   luaMemo->Lines->Add("Done!");
-  // target image has been loaded (TODO: chheck if target image has been modified!!!)
-  if (mapTgt && mView->ImageTag[1] == -2)
+  if (FExportedAsTarget)
 	 {
-	 //luaMemo->Lines->Strings[luaMemo->Lines->Count - 1] = "Done!";
-	 if (ieView->Selected)
-		 {
-		 ieView->MagicWandMaxFilter = chkSelMaxFilter->Checked;
-		 ieView->MagicWandMode      = (TIEMagicWandMode)(rgpWandModes->ItemIndex);
-		 ieView->MagicWandTolerance = editWandTol->IntValue;
-		 ieView->SaveSelection();
-		 if (chkSelRestore->Checked && editSelFeather->IntValue > 0)
-			{
-			ieView->SaveSelection();
-			ieView->MakeSelectionFeather(editSelFeather->IntValue);
-			}
-		 bool tlpe = (ieView->SelectionMask->GetPixel(0, 0) == 0x00);
-		 if (tlpe)
-			ieView->SelectionMask->SetPixel(0, 0, 0x01);
-		 FMapWork->CopyWithMask2(mapTgt, ieView->SelectionMask);
-		 if (tlpe)
-			ieView->SelectionMask->SetPixel(0, 0, 0x00);
-		 if (chkSelRestore->Checked && editSelFeather->IntValue > 0)
-			{
-			ieView->MakeSelectionFeather(0);
-			ieView->RestoreSelection();
-			}
-		 ieView->RestoreSelection();
-		 }
-	 else
-		 FMapWork->DrawToTIEBitmap(mapTgt, 0, 0);
 	 mView->SetImage(1, mapTgt);
-	 mView->SelectedImage = mView->ImageCount - 1;  // go to last image
+	 mView->SelectedImage = 1;
 	 mViewImageSelect(this, mView->SelectedImage);
 	 }
-  ieView->Update();
+  else
+	 {
+	  // target image has been loaded (TODO: chheck if target image has been modified!!!)
+	  if (mapTgt && mView->ImageTag[1] == -2)
+		 {
+		 //luaMemo->Lines->Strings[luaMemo->Lines->Count - 1] = "Done!";
+		 if (ieViewSingle->Selected && FSelectionRoiEnabled)
+			 {
+			 ieViewSingle->MagicWandMaxFilter = chkSelMaxFilter->Checked;
+			 ieViewSingle->MagicWandMode      = (TIEMagicWandMode)(rgpWandModes->ItemIndex);
+			 ieViewSingle->MagicWandTolerance = editWandTol->IntValue;
+			 ieViewSingle->SaveSelection();
+			 if (chkSelRestore->Checked && editSelFeather->IntValue > 0)
+				{
+				ieViewSingle->SaveSelection();
+				ieViewSingle->MakeSelectionFeather(editSelFeather->IntValue);
+				}
+			 bool tlpe = (ieViewSingle->SelectionMask->GetPixel(0, 0) == 0x00);
+			 if (tlpe)
+				ieViewSingle->SelectionMask->SetPixel(0, 0, 0x01);
+			 FMapWork->CopyWithMask2(mapTgt, ieViewSingle->SelectionMask);
+			 if (tlpe)
+				ieViewSingle->SelectionMask->SetPixel(0, 0, 0x00);
+			 if (chkSelRestore->Checked && editSelFeather->IntValue > 0)
+				{
+				ieViewSingle->MakeSelectionFeather(0);
+				ieViewSingle->RestoreSelection();
+				}
+			 ieViewSingle->RestoreSelection();
+			 }
+		 else
+			 FMapWork->DrawToTIEBitmap(mapTgt, 0, 0);
+		 mView->SetImage(1, mapTgt);
+		 mView->SelectedImage = mView->ImageCount - 1;  // go to last image
+		 mViewImageSelect(this, mView->SelectedImage);
+		 }
+	 }
+  ieViewSingle->Update();
   // always delete work map
   if (FMapWork)
 	 {
@@ -396,44 +469,18 @@ void __fastcall TfrmLips::btnReloadClick(TObject *Sender)
 listScriptsItemSelected(this, listScripts->SelectedItemIndex);
 }
 //---------------------------------------------------------------------------
-void __fastcall TfrmLips::btnToggleModeClick(TObject *Sender)
-{
-if (mView->ImageCount < 2)    // why to show only one image
-   return;
-// toggle view mode
-if (pageMVControl->ActivePageIndex == 0)
-   {
-   // collect all images and show them as layers
-   // select souce as bacground
-   mView->SelectedImage = 0;  // go to source image
-   // reset blending mode
-   comboBlend->ItemIndex = 0;
-   mViewImageSelect(this, mView->SelectedImage);
-   for (int i = 1; i < FImageList->Count; i++)
-	   {
-	   TIEBitmap *map = static_cast<TIEBitmap*>(FImageList->Items[i]);
-	   ieView->LayersAdd(map);
-	   ieView->Layers[i]->PosX = 0;
-	   ieView->Layers[i]->PosY = 0;
-	   }
-   layersMView->AttachedImageEnView = ieView;
-   pageMVControl->ActivePageIndex = 1;  // switch to layers mode
-   ieView->MouseInteract  = TIEMouseInteract()<<miMoveLayers;
-   }
-else
-   {
-   // delete all layers and switch to normal mode
-   ieView->LayersClear(false);
-   layersMView->AttachedImageEnView = 0;
-   pageMVControl->ActivePageIndex = 0;  // switch to normal mode
-   }
-}
-//---------------------------------------------------------------------------
 // delete all images
 void __fastcall TfrmLips::btnClearAllClick(TObject *Sender)
 {
 deleteImages();
-ieView->Blank();
+ieViewSingle->Blank();
+layersMView->AttachedImageEnView = 0;
+ieViewLayers->LayersClear(true);
+ieViewLayers->Blank();
+comboBlend->ItemIndex = 0;
+editBlend->IntValue = 255;
+layersMView->AttachedImageEnView = ieViewLayers;
+resetMouseEvents();
 }
 //---------------------------------------------------------------------------
 // clear all imported images (images exported from script)
@@ -441,7 +488,7 @@ void __fastcall TfrmLips::btnClearAdditionalClick(TObject *Sender)
 {
 if (FImageList->Count < 2)
    return;
-ieView->SetExternalBitmap(0);
+ieViewSingle->SetExternalBitmap(0);
 for (int i = FImageList->Count - 1; i > 0; i--)
 	{
 	if (mView->ImageTag[i] < 0)
@@ -451,10 +498,10 @@ for (int i = FImageList->Count - 1; i > 0; i--)
 	FImageList->Delete(i);
 	mView->DeleteImage(i);
 	}
-if (TCommonHelper::luaPushImage)
+if (TLipsHelper::luaPushImage)
    {
-   delete TCommonHelper::luaPushImage;
-   TCommonHelper::luaPushImage = 0;
+   delete TLipsHelper::luaPushImage;
+   TLipsHelper::luaPushImage = 0;
    }
 mView->SelectedImage = 0;
 mViewImageSelect(this, mView->SelectedImage);
@@ -521,7 +568,7 @@ switch (pop->Tag)
    default:
 		return;
    }
-ieView->SetExternalBitmap(0);
+ieViewSingle->SetExternalBitmap(0);
 TIEBitmap *mapFrom = static_cast<TIEBitmap*>(FImageList->Items[img_from]);
 TIEBitmap *mapTo   = static_cast<TIEBitmap*>(FImageList->Items[img_to]);
 if (pop->Tag < 10)
@@ -541,10 +588,10 @@ else
 	mView->SelectedImage = img_to;
 	mViewImageSelect(this, mView->SelectedImage);
    }
-if (TCommonHelper::luaPushImage)
+if (TLipsHelper::luaPushImage)
    {
-   delete TCommonHelper::luaPushImage;
-   TCommonHelper::luaPushImage = 0;
+   delete TLipsHelper::luaPushImage;
+   TLipsHelper::luaPushImage = 0;
    }
 }
 //---------------------------------------------------------------------------
@@ -555,14 +602,14 @@ if (MessageDlg("Do you want to merge all layers to new image?", mtConfirmation, 
    return;
 // create new image
 TIEBitmap *mapTo = new TIEBitmap();
-ieView->LayersSaveMergedTo(mapTo);
+ieViewLayers->LayersSaveMergedTo(mapTo);
 FImageList->Add(mapTo);
 int save_sel = mView->SelectedImage;
 int pos = mView->AppendImage();
 mView->SetImage(pos, mapTo);
 mView->ImageTopText[pos] =  "merged";
 mView->SelectedImage = save_sel;
-MessageDlg("Layers merged, new image added. Toggle view mode to see the result.", mtInformation, TMsgDlgButtons() << mbOK, 0);
+MessageDlg("Layers merged, new image added. Go to single view to see the result.", mtInformation, TMsgDlgButtons() << mbOK, 0);
 }
 //---------------------------------------------------------------------------
 // on script selected event
@@ -570,18 +617,21 @@ void __fastcall TfrmLips::listScriptsItemSelected(TObject *Sender, int itemindex
 {
 // load script
 FScriptLoaded = false;
-TCommonHelper::DeleteIPList();
+TLipsHelper::DeleteIPList();
+resetMouseEvents();
 if (itemindex < 0)
    return;
 labStatus->Caption = "Selected script: "+listScripts->Items->Items[itemindex]->Caption;
 // set call-back functions
-TCommonHelper::luaParamsOK = true;
-lipsSetCbProgress(&(TCommonHelper::LuaProgress));    	 // progress
-lipsSetCbMessage(&(TCommonHelper::LuaMessage));          // get message from lua
-lipsSetCbRequireParams(&(TCommonHelper::LuaRequire));    // lua require params
-lipsSetCbLoadImage(&(TCommonHelper::LuaLoadImage));      // load image using path
-lipsSetCbExportImage(&(TCommonHelper::LuaExportImage));  // import exported script image
-lipsSetCbHostDialog(&(TCommonHelper::LuaHostDialog));    // host dialog
+TLipsHelper::luaParamsOK = true;
+lipsSetCbProgress(&(TLipsHelper::LuaProgress));    	   // progress
+lipsSetCbMessage(&(TLipsHelper::LuaMessage));          // get message from lua
+lipsSetCbRequireParams(&(TLipsHelper::LuaRequire));    // lua require params
+lipsSetCbRefreshParams(&(TLipsHelper::LuaRefresh));    // lua require params
+lipsSetCbLoadImage(&(TLipsHelper::LuaLoadImage));      // load image using path
+lipsSetCbExportImage(&(TLipsHelper::LuaExportImage));  // import exported script image
+lipsSetCbHostDialog(&(TLipsHelper::LuaHostDialog));    // host dialog
+lipsSetCbCommand(&TLipsHelper::LuaCommand);            // send command from lua
 int result = lipsLoadScript(FLuaScripts->Strings[itemindex].w_str());
 if (result)
   {
@@ -590,7 +640,7 @@ if (result)
   }
 else
   {
-  if (TCommonHelper::luaParamsOK)
+  if (TLipsHelper::luaParamsOK)
 	 {
 	 luaMemo->Clear();
 	 luaMemo->Lines->Add("Script loaded.");
@@ -605,8 +655,8 @@ else
 // delete offscreen maps
 void __fastcall TfrmLips::deleteImages(int upto)
 {
-ieView->SetExternalBitmap(0);
-ieView->Blank();
+ieViewSingle->SetExternalBitmap(0);
+ieViewSingle->Blank();
 // delete thumbnails
 if (upto == 0)
    mView->Clear();
@@ -621,21 +671,21 @@ while (FImageList->Count > upto)
    delete map;
    FImageList->Delete(FImageList->Count - 1);
    }
-if (TCommonHelper::luaPushImage)
+if (TLipsHelper::luaPushImage)
    {
-   delete TCommonHelper::luaPushImage;
-   TCommonHelper::luaPushImage = 0;
+   delete TLipsHelper::luaPushImage;
+   TLipsHelper::luaPushImage = 0;
    }
 }
 //---------------------------------------------------------------------------
 // check for table image frames (if script is already loaded)
 void __fastcall TfrmLips::checkImageFrames(void)
 {
-if (TCommonHelper::luaInputParams)
+if (TLipsHelper::luaInputParams)
   {
-   for (int i = 0; i < TCommonHelper::luaInputParams->Count; i++)
+   for (int i = 0; i < TLipsHelper::luaInputParams->Count; i++)
 	   {
-	   TCommonHelper::LuaTKRV *obj = static_cast<TCommonHelper::LuaTKRV*>(TCommonHelper::luaInputParams->Items[i]);
+	   TLipsHelper::LuaTKRV *obj = static_cast<TLipsHelper::LuaTKRV*>(TLipsHelper::luaInputParams->Items[i]);
 	   if (obj->type == "imagemap")
 		  {
 		  TFrameImage *fi = static_cast<TFrameImage*>(obj->frame);
@@ -651,7 +701,7 @@ void __fastcall TfrmLips::loadScriptList(UnicodeString path)
 // load file list
 FLuaScripts->Clear();
 listScripts->Items->Clear();
-UnicodeString temp_str, ffil, full_str;
+UnicodeString ffil, full_str;
 TSearchRec ffs;
 //
 ffil = path + "*.lua";
@@ -713,30 +763,44 @@ if (FSelRect)
    delete FSelRect;
    FSelRect = 0;
    }
+// reset source masks
+if (FSourceMask)
+   {
+   delete FSourceMask;
+   FSourceMask = 0;
+   lipsSetSourceMask(0, 0, 0, 4);
+   }
+// reset target masks
+if (FTargetMask)
+   {
+   delete FTargetMask;
+   FTargetMask = 0;
+   lipsSetTargetMask(0, 0, 0, 4);
+   }
 // set source roi if selection exists
-if (ieView->Selected)
+if (ieViewSingle->Selected)
    {
    FSelRect = new TRect;
-   FSelRect->left   = ieView->SelectedRect.x;
-   FSelRect->right  = ieView->SelectedRect.width + FSelRect->left;
-   FSelRect->top    = ieView->SelectedRect.y;
-   FSelRect->bottom = ieView->SelectedRect.height + FSelRect->top;
-   lipsSetSourceRoi(FSelRect);   // for now, only source roi
+   FSelRect->left   = ieViewSingle->SelectedRect.x;
+   FSelRect->right  = ieViewSingle->SelectedRect.width + FSelRect->left;
+   FSelRect->top    = ieViewSingle->SelectedRect.y;
+   FSelRect->bottom = ieViewSingle->SelectedRect.height + FSelRect->top;
+   lipsSetSourceRoi(FSelRect);   // set source roi
    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TfrmLips::luaParamBuilder(void)
 {
-// called from TCommonHelper::LuaRequire
-if (TCommonHelper::luaInputParams->Count == 0)
+// called from TLipsHelper::LuaRequire
+if (TLipsHelper::luaInputParams->Count == 0)
    return;
 TFormatSettings fmt;
 fmt.DecimalSeparator = '.';
 scrollBox->Visible = false;
-for (int i = TCommonHelper::luaInputParams->Count -1; i >= 0 ; i--)
+for (int i = TLipsHelper::luaInputParams->Count -1; i >= 0 ; i--)
 	{
 	// create frame
-	TCommonHelper::LuaTKRV *obj = static_cast<TCommonHelper::LuaTKRV*>(TCommonHelper::luaInputParams->Items[i]);
+	TLipsHelper::LuaTKRV *obj = static_cast<TLipsHelper::LuaTKRV*>(TLipsHelper::luaInputParams->Items[i]);
 	if (obj->type == "int")
 	   {
 	   TFrameSlider *fs = new TFrameSlider(this);
@@ -798,19 +862,24 @@ for (int i = TCommonHelper::luaInputParams->Count -1; i >= 0 ; i--)
 	else if (obj->type == "imagefile")
 	   {
 	   String iPath;
-	   if (obj->init_value == "#tiles")
-		  iPath = comboShellTiles->Path;
-	   else if (obj->init_value == "#textures")
-		  iPath = comboShellTextures->Path;
-	   else       // some other image directory
-		  iPath = comboShellTiles->Path; // for now tiles
+	   if (obj->init_value.SubString(1, 1) == "#")  // hashtag - use predefined directories
+		  {
+		  if (obj->init_value == "#tiles")
+			 iPath = comboShellTiles->Path;
+		  else if (obj->init_value == "#textures")
+			 iPath = comboShellTextures->Path;
+		  else       // some other image directory
+			 iPath = comboShellTiles->Path; // for now tiles
+		  }
+	   else
+		  iPath = obj->init_value;  // lua supplied directory
 	   if (rgpAuxViewStyle->ItemIndex == 0)
 		  {
 		  TFrameImageSlider *fs = new TFrameImageSlider(this);
 		  fs->Name = "fis"+IntToStr(i);
 		  fs->box->Caption = obj->key;
 		  int done, pos;
-		  String temp_str, ffil, full_str;
+		  String ffil, full_str;
 		  TSearchRec ffs;
 		  ffil = IncludeTrailingBackslash(iPath) + obj->range_low;
 		  done = FindFirst(ffil, 32, ffs);
@@ -832,8 +901,11 @@ for (int i = TCommonHelper::luaInputParams->Count -1; i >= 0 ; i--)
 		  fc->box->Caption = obj->key;
 		  String ffil = IncludeTrailingBackslash(iPath);
 		  fc->Add(ffil, obj->range_low);
-		  fc->image->SelectedImageIndex = 0;
-		  fc->imageSelectImage(this, 0);
+		  if (!iPath.IsEmpty())
+			 {
+			 fc->image->SelectedImageIndex = 0;
+			 fc->imageSelectImage(this, 0);
+			 }
 		  fc->Parent = scrollBox; //panParams;
 		  fc->Align = alTop;
 		  obj->frame = fc;
@@ -849,9 +921,63 @@ for (int i = TCommonHelper::luaInputParams->Count -1; i >= 0 ; i--)
 	   fi->Align = alTop;
 	   obj->frame = fi;
 	   }
+	else if (obj->type == "file")
+	   {
+	   if (rgpFileViewStyle->ItemIndex == 0)
+		  {
+		   TFrameListBox *fl = new TFrameListBox(this);
+		   fl->Name = "flb"+IntToStr(i);
+		   fl->box->Caption = obj->key;
+		   int done, pos, iWid = 0;
+		   String ffil, full_str;
+		   TSearchRec ffs;
+		   ffil = IncludeTrailingBackslash(obj->init_value) + obj->range_low;
+		   done = FindFirst(ffil, 32, ffs);
+		   while (done == 0)
+			 {
+			 full_str = ExtractFileDir(ffil) + "\\" + ffs.Name;
+			 if (fl->list->Canvas->TextWidth(full_str + "W") > iWid)
+				iWid = fl->list->Canvas->TextWidth(full_str + "W");
+			 fl->list->Items->Add(full_str);
+			 done = FindNext(ffs);
+			 }
+		   FindClose(ffs);
+		   fl->list->ItemIndex = 0;
+		   fl->Parent = scrollBox; //panParams;
+		   fl->Align = alTop;
+		   fl->list->ScrollWidth = iWid;
+		   obj->frame = fl;
+		  }
+	   else
+		  {
+		   TFrameShellComboBox *fsc = new TFrameShellComboBox(this);
+		   fsc->Name = "fsc"+IntToStr(i);
+		   fsc->box->Caption = obj->key;
+		   fsc->comboShell->Path = obj->init_value;
+		   fsc->comboShell->Properties->FileMask = obj->range_low;
+		   fsc->Parent = scrollBox; //panParams;
+		   fsc->Align = alTop;
+		   obj->frame = fsc;
+		  }
+	   }
 	}
 scrollBox->Realign();
 scrollBox->Visible = true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TfrmLips::luaParamRefresh(void)
+{
+int result;
+if (FScriptLoaded)
+  {
+  String params = setParamValues();
+  result = lipsRefreshParams(params.c_str());
+  }
+if (result)
+  {
+  luaMemo->Text = String(lipsGetLastErrorMessage());
+  labStatus->Caption = "Error: refresh params failed!";
+  }
 }
 //---------------------------------------------------------------------------
 void __fastcall TfrmLips::luaImportImage(TExportImage *expImage, bool asIs)
@@ -865,8 +991,8 @@ if (expType == "asSource")
 else if (expType == "asTarget") // new target image
    {
    map = new TIEBitmap(expImage->width, expImage->height, ie24RGB);
-   TCommonHelper::CopyExpImage2Bitmap(expImage, map, asIs);
-   ieView->Zoom = 100;
+   TLipsHelper::CopyExpImage2Bitmap(expImage, map, asIs);
+   ieViewSingle->Zoom = 100;
    // append or replace image
    if (mView->ImageCount == 1)
 	  {
@@ -874,52 +1000,54 @@ else if (expType == "asTarget") // new target image
 	  FImageList->Add(map);    		// target
 	  mView->InsertImage(1);
 	  mView->SetImage(1, map);
+      mView->ImageTag[1] = -2;
 	  mView->ImageTopText[1] =  "target";
 	  }
    else
 	  {
+	  //mView->SelectedImage = 0;
+	  //mViewImageSelect(this, mView->SelectedImage);
 	  TIEBitmap *oldMap = static_cast<TIEBitmap*>(FImageList->Items[1]);
-      delete oldMap;
+	  delete oldMap;
 	  FImageList->Items[1] = map;   // target
-	  mView->SetImage(1, map);
+	  FExportedAsTarget = true;
 	  }
-   mView->SelectedImage = 1;
-   mViewImageSelect(this, mView->SelectedImage);
    }
 else
    {
    map = new TIEBitmap(expImage->width, expImage->height, ie24RGB);
-   TCommonHelper::CopyExpImage2Bitmap(expImage, map, asIs);
-   ieView->Zoom = 100;
+   TLipsHelper::CopyExpImage2Bitmap(expImage, map, asIs);
+   ieViewSingle->Zoom = 100;
    // append image
    FImageList->Add(map);    		// new image
    int idx = FImageList->Count - 1;
    mView->AppendImage();
    mView->SetImage(idx, map);
    mView->ImageTopText[idx] =  expType;
-   mView->SelectedImage = idx;
-   mViewImageSelect(this, mView->SelectedImage);
+   //mView->SelectedImage = idx;
+   //mViewImageSelect(this, mView->SelectedImage);
    }
 }
 //---------------------------------------------------------------------------
-void __fastcall TfrmLips::prepareTableImage(TFrameImage*fi, TCommonHelper::LuaTKRV *obj)
+void __fastcall TfrmLips::prepareTableImage(TFrameImage*fi, TLipsHelper::LuaTKRV *obj)
 {
+mViewImageSelect(this, 0);  // source image
 if (obj->init_value == "#input")
-   fi->ieView->IEBitmap->AssignImage(ieView->IEBitmap);
+   fi->ieView->IEBitmap->AssignImage(ieViewSingle->IEBitmap);
 else if (obj->init_value == "#sobel")
    {
-   fi->ieView->IEBitmap->AssignImage(ieView->IEBitmap);
+   fi->ieView->IEBitmap->AssignImage(ieViewSingle->IEBitmap);
    fi->ieView->Proc->EdgeDetect_Sobel();
    }
 else
-   fi->ieView->IEBitmap->AssignImage(ieView->IEBitmap);
-fi->InputImage = ieView->IEBitmap;
+   fi->ieView->IEBitmap->AssignImage(ieViewSingle->IEBitmap);
+fi->InputImage = ieViewSingle->IEBitmap;
 fi->Type = obj->range_high;
 if (obj->range_high == "grayscale")
    fi->ieView->Proc->ConvertToGray();
 }
 //---------------------------------------------------------------------------
-void __fastcall TfrmLips::pushTableImage(TImageEnView *fiView, TCommonHelper::LuaTKRV *obj)
+void __fastcall TfrmLips::pushTableImage(TImageEnView *fiView, TLipsHelper::LuaTKRV *obj)
 {
 // prepare image and push it to lua table (tab.type, tab.ptr)
 TIEBitmap *pi = new TIEBitmap();
@@ -939,14 +1067,14 @@ delete pi;
 // set parameters to chosen values (push image if any)
 String __fastcall TfrmLips::setParamValues(void)
 {
-if (!TCommonHelper::luaInputParams)
+if (!TLipsHelper::luaInputParams)
    return "";
-if (TCommonHelper::luaInputParams->Count == 0)
+if (TLipsHelper::luaInputParams->Count == 0)
    return "";
 String luaParams = "";
-for (int i = 0; i < TCommonHelper::luaInputParams->Count; i++)
+for (int i = 0; i < TLipsHelper::luaInputParams->Count; i++)
 	{
-	TCommonHelper::LuaTKRV *obj = static_cast<TCommonHelper::LuaTKRV*>(TCommonHelper::luaInputParams->Items[i]);
+	TLipsHelper::LuaTKRV *obj = static_cast<TLipsHelper::LuaTKRV*>(TLipsHelper::luaInputParams->Items[i]);
 	if (obj->type == "int")
 	   {
 	   TFrameSlider *fs = static_cast<TFrameSlider*>(obj->frame);
@@ -992,13 +1120,192 @@ for (int i = 0; i < TCommonHelper::luaInputParams->Count; i++)
 	   TFrameImage *fi = static_cast<TFrameImage*>(obj->frame);
 	   pushTableImage(fi->ieView, obj);
 	   }
+	else if (obj->type == "file")
+	   {
+	   if (rgpFileViewStyle->ItemIndex == 0)
+		  {
+		   TFrameListBox *fl = static_cast<TFrameListBox*>(obj->frame);
+		   if (fl->list->Count == 0)
+			  luaParams = luaParams + obj->key + "=string();";
+		   else
+			  luaParams = luaParams + obj->key + "=string(" + fl->list->Items->Strings[fl->list->ItemIndex] + ");";
+		  }
+	   else
+		  {
+		   TFrameShellComboBox *fsc = static_cast<TFrameShellComboBox*>(obj->frame);
+		   luaParams = luaParams + obj->key + "=string(" + fsc->comboShell->Text + ");";
+		  }
+	   }
 	}
 return luaParams;
+}
+//---------------------------------------------------------------------------
+bool __fastcall TfrmLips::luaCommand(const char *cmd, const char* parList)
+{
+FSelectionRoiEnabled = true;
+String sCmd   = String(cmd).Trim().LowerCase();
+String sParams = String(parList).Trim().LowerCase();
+TStringDynArray tokens = SplitString(sParams, ",");
+if (sCmd == "layeradd" || sCmd == "layerbackground")
+   {
+   if (tokens.Length < 1)
+	  return false;
+   TIEBitmap *map = 0;
+   tokens[0] = tokens[0].Trim();
+   if (tokens[0] == "source")
+	   map = static_cast<TIEBitmap*>(FImageList->Items[0]);
+   else if (tokens[0] == "target" && FImageList->Count > 1)
+	   map = static_cast<TIEBitmap*>(FImageList->Items[1]);
+   else if (tokens[0] == "last" && FImageList->Count > 0)
+	   map = static_cast<TIEBitmap*>(FImageList->Items[FImageList->Count - 1]);
+   else  // by id
+	   {
+	   try {
+		   int idx = StrToInt(tokens[0]);
+		   map = static_cast<TIEBitmap*>(FImageList->Items[idx]);
+		   }
+	   catch (...)
+		   {
+		   return false;
+		   }
+	   }
+   if (map)
+	  {
+	  if (sCmd == "layeradd")
+		 {
+		 ieViewLayers->LayersAdd(map); 				// test - not shared
+		 ieViewLayers->CurrentLayer->PosX = 0;
+		 ieViewLayers->CurrentLayer->PosY = 0;
+		 }
+	  else
+		 {
+		 ieViewLayers->LayersCurrent = 0;
+		 ieViewLayers->IEBitmap->AssignImage(map);   // test - not shared
+		 }
+	  }
+   else
+	  return false;
+   }
+else if (sCmd == "layerclearall")
+   {
+   ieViewLayers->LayersClear(true);
+   ieViewLayers->Blank();
+   }
+else if (sCmd == "info")
+   {
+   if (tokens.Length < 1)
+	  return false;
+   labInfo->Caption = tokens[0];
+   }
+else if (sCmd == "updatescreen")
+   {
+   ieViewSingle->Update();
+   }
+else if (sCmd == "registermouseevent")
+   {
+   FMouseEvent2Lua = false;
+   lipsMouse2Lua(false);
+   if (tokens.Length < 3)
+	  return false;
+   if (tokens[0].Trim() == "true")
+	  ieViewSingle->OnMouseDown = ieViewSingleMouseDown;
+   else
+	  ieViewSingle->OnMouseDown = 0;
+   if (tokens[1].Trim() == "true")
+	  ieViewSingle->OnMouseMove = ieViewSingleMouseMove;
+   else
+	  ieViewSingle->OnMouseMove = 0;
+   if (tokens[2].Trim() == "true")
+	  ieViewSingle->OnMouseUp = ieViewSingleMouseUp;
+   else
+	  ieViewSingle->OnMouseUp = 0;
+   lipsMouse2Lua(true);
+   FMouseEvent2Lua = true;
+   // kill selections and mouse interaction
+   ieViewSingle->MouseInteract = TIEMouseInteract();
+   ieViewSingle->Deselect();
+   }
+else if (sCmd == "selection")
+   {
+   if (tokens.Length < 1)
+	  return false;
+   if (tokens[0] == "enableroi")
+	  FSelectionRoiEnabled = true;
+   else if (tokens[0] == "disableroi")
+	  FSelectionRoiEnabled = false;
+   else if (tokens[0] == "settargetroi")
+	  {
+	  if (ieViewSingle->Selected)
+		 {
+		 TRect sr;
+		 sr.left   = ieViewSingle->SelectedRect.x;
+		 sr.right  = ieViewSingle->SelectedRect.width + sr.left;
+		 sr.top    = ieViewSingle->SelectedRect.y;
+		 sr.bottom = ieViewSingle->SelectedRect.height + sr.top;
+		 lipsSetTargetRoi(&sr, true);   // set target roi and push to lua stack
+		 }
+	  else
+		 lipsSetTargetRoi(0, true);     // set target roi to nil and push to lua stack
+	  }
+   else if (tokens[0] == "setcustom")
+	  {
+	  if (FSelection.Image)
+		 {
+		 int h = FSelection.Image->Height;
+		 int w = FSelection.Image->Width;
+		 lipsSetCustomImage(FSelection.Image->ScanLine[h - 1], 0, w, h, 4);
+		 lipsSetCustomMask(FSelection.Mask->ScanLine[h - 1], w, h, 4);
+		 }
+	  }
+   }
+else
+   return false;
+return true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TfrmLips::rgpAuxViewStylePropertiesChange(TObject *Sender)
 {
 listScriptsItemSelected(this, listScripts->SelectedItemIndex);
+}
+//---------------------------------------------------------------------------
+// mouse events
+void __fastcall TfrmLips::ieViewSingleMouseDown(TObject *Sender, TMouseButton Button,
+		  TShiftState Shift, int X, int Y)
+{
+X = ieViewSingle->XScr2Bmp(X);
+Y = ieViewSingle->YScr2Bmp(Y);
+lipsMouseDown(Shift, X, Y);
+}
+//---------------------------------------------------------------------------
+void __fastcall TfrmLips::ieViewSingleMouseMove(TObject *Sender, TShiftState Shift,
+		  int X, int Y)
+{
+X = ieViewSingle->XScr2Bmp(X);
+Y = ieViewSingle->YScr2Bmp(Y);
+lipsMouseMove(Shift, X, Y);
+}
+//---------------------------------------------------------------------------
+void __fastcall TfrmLips::ieViewSingleMouseUp(TObject *Sender, TMouseButton Button,
+		  TShiftState Shift, int X, int Y)
+{
+X = ieViewSingle->XScr2Bmp(X);
+Y = ieViewSingle->YScr2Bmp(Y);
+lipsMouseUp(Shift, X, Y);
+}
+//---------------------------------------------------------------------------
+void __fastcall TfrmLips::resetMouseEvents(void)
+{
+if (ieViewSingle->OnMouseDown || ieViewSingle->OnMouseMove || ieViewSingle->OnMouseUp)
+   {
+   luaMemo->Clear();
+   luaMemo->Lines->Add("Done!");
+   labInfo->Caption = "";
+   }
+ieViewSingle->OnMouseDown = 0;
+ieViewSingle->OnMouseMove = 0;
+ieViewSingle->OnMouseUp  = 0;
+FMouseEvent2Lua = false;
+lipsMouse2Lua(false);
 }
 //---------------------------------------------------------------------------
 

@@ -24,6 +24,8 @@ private:
 		int targetId;
 		SocvRoi sourceRoi;
 		SocvRoi targetRoi;
+		int srcMaskId;
+        int tgtMaskId;
 		};
 	TOpenCV FOpenCV;
 	int FDKIdx;
@@ -37,20 +39,24 @@ public:
         };
 	TLuaHost(void);
 	virtual ~TLuaHost(void);
-	TLuaProgress OnLuaProgress;  	 // callback
-	TLuaString OnLuaRequireParams;   // callback
-	TLuaString OnLuaSendMessage;     // callback
-	TLuaLoadImage OnLuaLoadImage;    // callback
-	TLuaExportImage OnLuaExportImage; // callback
-    TLuaHostDialog  OnLuaHostDialog;
+	TLuaProgress OnLuaProgress;  	    // callback
+	TLuaString OnLuaRequireParams;      // callback
+	TLuaString OnLuaRefreshParams;      // callback
+	TLuaString OnLuaSendMessage;        // callback
+	TLuaDoubleString OnLuaLoadImage;    // callback
+	TLuaExportImage OnLuaExportImage;   // callback
+	TLuaHostDialog  OnLuaHostDialog;    // callback
+	TLuaDoubleString OnLuaSendCommand;  // callback
 	// not exposed to lua
 	void SetPushImage(TInternalImage *img);
 	TLuaImageVoid* AddPushImage(TInternalImage *img);
 	// exposed
 	void ShowProgress(int done, int total);
 	void RequireParams(const char *parList);
+	void RefreshParams(void);
 	void SendMessage(const char *msg);
-	int  HostDialog(const char *dialogText);
+	int  HostDialog(const char *dialogText, int type);
+    bool SendCommand(const char *cmd, const char *parList);
 	// image routines
 	TLuaImageVoid* CreateImage(const char *type, int width, int height);
 	TLuaImageVoid* LoadImage(const char *filename, const char *type);
@@ -65,6 +71,8 @@ public:
 	bool Conv_lab2rgb(int idInput, int idOutput);
 	// image processing - internal
 	bool Blur(int idInput, int idOutput, const char *radius);
+	// checker
+    bool Checker(const char *cmd, const char *param);
 	// OpenCV
 	bool OcvSet(const char *proc, int id);
 	bool OcvSet(const char *proc, TLuaRoi * roi);

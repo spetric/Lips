@@ -32,6 +32,7 @@
 __fastcall TFrameImageCombo::TFrameImageCombo(TComponent* Owner)
 	: TFrame(Owner)
 {
+File = "";
 }
 //---------------------------------------------------------------------------
 void __fastcall TFrameImageCombo::Add(String path, String search)

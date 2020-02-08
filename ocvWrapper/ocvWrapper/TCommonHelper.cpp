@@ -194,4 +194,3 @@ Mat TCommonHelper::spGenerateTrigonoKernel(int fType, unsigned int kernelSize, d
 }
 
 
-

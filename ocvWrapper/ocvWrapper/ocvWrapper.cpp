@@ -7,16 +7,26 @@
 #include "opencv2/objdetect.hpp"
 #include "opencv2/fuzzy.hpp"
 #include "opencv2/xphoto.hpp"
+#include "opencv2/xfeatures2d.hpp"
 #include "TCommonHelper.h"
 #include "ocvDataKeeper.h"
 using namespace cv;
 // global objects
-static Mat imgSource, imgTarget, imgIntermediate, imgExport, maskSource, maskTarget;
-static Mat alphaSource, alphaTarget, alphaIntermediate, alphaExport;
-static Rect roiSource, roiTarget, roiIntermediate;		// roi rectangles
-static Mat roimSource, roimTarget, roimIntermediate;	// roi image Mats
-static Mat roalInput, roalOutput, roalIntermediate;		// roi alpha Mats
+static Mat imgSource, imgTarget, imgExport, maskSource, maskTarget;
+static Mat alphaSource, alphaTarget, alphaExport;
+static Rect roiSource, roiTarget;		// roi rectangles
+static Mat roimSource, roimTarget;	    // roi image Mats
+static Mat roalInput, roalOutput;		// roi alpha Mats
 static std::vector<TocvDataKeeper*> dataKeeperList;
+// Variables to store keypoints and descriptors
+static std::vector<KeyPoint> keypointsSource, keypointsTarget;
+static Mat descriptorsSource, descriptorsTarget;
+// Match features
+static std::vector<DMatch> matches;
+// homography matrix
+static Mat homography, homoMask;
+// last used homography
+static SocvHomography lastHomography;
 // global vars
 static bool gEnableAlpha;
 // output structures
@@ -52,7 +62,7 @@ int ocvne_checkImgAndRoi(void)
 		if (!alphaTarget.empty())
 			roalOutput = alphaTarget(roiTarget);
 	}
-	alphaExport = Mat(); // erese always
+	// no way alphaExport = Mat(); // erese always
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
@@ -175,19 +185,6 @@ int ocvSetImage(TImgType type, int width, int height, void *imageBuff, int image
 		alphaTarget = Mat();
 		roiTarget = Rect();
 		break;
-	case OCW_IMG_INTERMEDIATE_RGB:
-		imgIntermediate = Mat(height, width, CV_8UC3, imageBuff, imageStride);
-		if (alphaBuff)
-			alphaIntermediate = Mat(height, width, CV_8UC1, alphaBuff, alphaStride);
-		else
-			alphaIntermediate = Mat();
-		roiTarget = Rect();
-		break;
-	case OCW_IMG_INTERMEDIATE_RGBA:
-		imgIntermediate = Mat(height, width, CV_8UC4, imageBuff, imageStride);
-		alphaIntermediate = Mat();
-		roiTarget = Rect();
-		break;
 	case OCW_MASK_SOURCE:
 		maskSource = Mat(height, width, CV_8UC1, imageBuff, imageStride);
 		break;
@@ -208,15 +205,12 @@ int ocvSetRoi(TRoiType type, SocvRoi roi)
 	{
 	case OCW_ROI_ALL:
 		roiTarget = Rect(roi.left, roi.top, roi.right - roi.left, roi.bottom - roi.top);
-		roiIntermediate = Rect(roi.left, roi.top, roi.right - roi.left, roi.bottom - roi.top);
+		roiSource = Rect(roi.left, roi.top, roi.right - roi.left, roi.bottom - roi.top);
 	case OCW_ROI_SOURCE:
 		roiSource = Rect(roi.left, roi.top, roi.right - roi.left, roi.bottom - roi.top);
 		break;
 	case OCW_ROI_TARGET:
 		roiTarget = Rect(roi.left, roi.top, roi.right - roi.left, roi.bottom - roi.top);
-		break;
-	case OCW_ROI_INTERMEDIATE:
-		roiIntermediate = Rect(roi.left, roi.top, roi.right - roi.left, roi.bottom - roi.top);
 		break;
 	default:
 		return OCW_ERR_BAD_TYPE;	// bad type
@@ -232,15 +226,12 @@ int ocvClearRoi(TRoiType type)
 	{
 	case OCW_ROI_ALL:
 		roiTarget = Rect();
-		roiIntermediate = Rect();
+		roiSource = Rect();
 	case OCW_ROI_SOURCE:
 		roiSource = Rect();
 		break;
 	case OCW_ROI_TARGET:
 		roiTarget = Rect();
-		break;
-	case OCW_ROI_INTERMEDIATE:
-		roiIntermediate = Rect();
 		break;
 	default:
 		return OCW_ERR_BAD_TYPE;	// bad type
@@ -286,9 +277,6 @@ int ocvCopy(TImgSelect inpType, TImgSelect outType)
 	Mat inp, out;
 	switch (inpType)
 	{
-		case OCW_IMAGE_INTERMEDIATE:
-			inp = roimIntermediate;
-		break;
 		case OCW_IMAGE_TARGET:
 			inp = roimTarget;
 		break;
@@ -298,9 +286,6 @@ int ocvCopy(TImgSelect inpType, TImgSelect outType)
 	}
 	switch (outType)
 	{
-	case OCW_IMAGE_INTERMEDIATE:
-		out = roimIntermediate;
-		break;
 	case OCW_IMAGE_SOURCE:
 		out = roimSource;
 		break;
@@ -636,7 +621,7 @@ int ocvWarpPolar(int x, int y, double maxRadius, bool exportImage, int flag)
 //-------------------------------------------------------------------------------------------------
 // DLL entry - proc - warp perspective
 //-------------------------------------------------------------------------------------------------
-int ocvWarpPerspective(const SocvWarpParams &wparams, bool exportImage,  int flag, TBorderType borderType)
+int ocvWarpPerspective(const SocvTuple *wparams, bool exportImage,  int flag, TBorderType borderType)
 {
 	int nRet = ocvne_checkImgAndRoi();
 	if (nRet)
@@ -644,14 +629,15 @@ int ocvWarpPerspective(const SocvWarpParams &wparams, bool exportImage,  int fla
 	Point2f srcPt[4], dstPt[4];
 	for (int i = 0; i < 4; i++)
 	{
-		srcPt[i].x = wparams.src[i][0];
-		srcPt[i].y = wparams.src[i][1];
-		dstPt[i].x = wparams.dst[i][0];
-		dstPt[i].y = wparams.dst[i][1];
+		srcPt[i].x = wparams->src[i][0];
+		srcPt[i].y = wparams->src[i][1];
+		dstPt[i].x = wparams->dst[i][0];
+		dstPt[i].y = wparams->dst[i][1];
 	}
 	Mat tMatrix = getPerspectiveTransform(srcPt, dstPt);
 	if (exportImage)
 		{
+		alphaExport = Mat();
 		warpPerspective(roimSource, imgExport, tMatrix, Size(), flag, borderType, Scalar());
 		if (!alphaSource.empty() && gEnableAlpha)
 			warpPerspective(roalInput, alphaExport, tMatrix, Size(), flag, borderType, Scalar());
@@ -672,7 +658,7 @@ int ocvWarpPerspective(const SocvWarpParams &wparams, bool exportImage,  int fla
 //-------------------------------------------------------------------------------------------------
 // DLL entry - proc - warp affine
 //-------------------------------------------------------------------------------------------------
-int ocvWarpAffine(const SocvWarpParams &wparams, bool exportImage, int flag, TBorderType borderType)
+int ocvWarpAffine(const SocvTuple *wparams, bool exportImage, int flag, TBorderType borderType)
 {
 	int nRet = ocvne_checkImgAndRoi();
 	if (nRet)
@@ -680,14 +666,15 @@ int ocvWarpAffine(const SocvWarpParams &wparams, bool exportImage, int flag, TBo
 	Point2f srcPt[3], dstPt[3];
 	for (int i = 0; i < 3; i++)
 	{
-		srcPt[i].x = wparams.src[i][0];
-		srcPt[i].y = wparams.src[i][1];
-		dstPt[i].x = wparams.dst[i][0];
-		dstPt[i].y = wparams.dst[i][1];
+		srcPt[i].x = wparams->src[i][0];
+		srcPt[i].y = wparams->src[i][1];
+		dstPt[i].x = wparams->dst[i][0];
+		dstPt[i].y = wparams->dst[i][1];
 	}
 	Mat tMatrix = getAffineTransform(srcPt, dstPt);
 	if (exportImage)
 	{
+		alphaExport = Mat();
 		warpAffine(roimSource, imgExport, tMatrix, Size(), flag, borderType, Scalar());
 		if (!alphaSource.empty() && gEnableAlpha)
 			warpAffine(roalInput, alphaExport, tMatrix, Size(), flag, borderType, Scalar());
@@ -727,14 +714,34 @@ int ocvFlipInplace(int flipCode, TImgSelect iSel)
 		if (imgSource.empty())
 			return OCW_ERR_NO_SOURCE;
 		else
+		{
 			flip(roimSource, roimSource, flipCode);
+			if (!alphaSource.empty())
+				flip(roalInput, roalInput, flipCode);
+		}
 	}
 	else if (iSel == OCW_IMAGE_TARGET)
 	{
 		if (imgTarget.empty())
 			return OCW_ERR_NO_TARGET;
 		else
+		{
 			flip(roimTarget, roimTarget, flipCode);
+			if (!alphaTarget.empty())
+				flip(roalOutput, roalOutput, flipCode);
+
+		}
+	}
+	else if (iSel == OCW_IMAGE_EXPORT)
+	{
+		if (imgExport.empty())
+			return OCW_ERR_NO_EXPORT;
+		else
+		{
+			flip(imgExport, imgExport, flipCode);
+			if (!alphaExport.empty())
+				flip(alphaExport, alphaExport, flipCode);
+		}
 	}
 	return 0;
 }
@@ -799,11 +806,11 @@ int ocvOilPainting(int size, int dynRatio)
 //-------------------------------------------------------------------------------------------------
 // DLL entry - DNN - read model 
 //-------------------------------------------------------------------------------------------------
-int ocvDnnReadModel(const wchar_t *model, int dkId)
+int ocvDnnReadModel(const wchar_t *model, const wchar_t *config, int dkId)
 {
 	TocvDataKeeper *dk = ocvne_getDK(dkId);
 	if (dk)
-		return dk->DnnReadModel(model);
+		return dk->DnnReadModel(model, config);
 	else
 		return OCW_ERR_NULL_OBJECT;
 }
@@ -823,13 +830,19 @@ int ocvStyleTransfer(int dkId, double scale, double meanR, double meanG, double 
 	dk->DnnNetwork.setPreferableBackend(dnn::DNN_BACKEND_INFERENCE_ENGINE);
 	dk->DnnNetwork.setPreferableTarget(dnn::DNN_TARGET_CPU);	
 	*/
-	Mat blob;
+	Mat blob, prob;
 	if (swapRB)
 		dnn::blobFromImage(roimSource, blob, scale, roimSource.size(), Scalar(meanR, meanG, meanB), swapRB, false);
 	else
 		dnn::blobFromImage(roimSource, blob, scale, roimSource.size(), Scalar(meanB, meanG, meanR), swapRB, false);
-	dk->DnnNetwork.setInput(blob);
-	Mat prob = dk->DnnNetwork.forward(); 
+	try {
+		dk->DnnNetwork.setInput(blob);
+		prob = dk->DnnNetwork.forward();
+	}
+	catch (...)	{
+		ocvClearDK(dkId);
+		return OCW_ERR_EXCEPTION;
+	}
 	//int n = prob.size[0];
 	//int c = prob.size[1];
 	int h = prob.size[2];
@@ -901,8 +914,6 @@ int ocvFaceLandmarkDetector(TImgSelect type, int dkId, bool singleFace, bool ext
 		img = roimSource;
 	else if (type == OCW_IMAGE_TARGET)
 		img = roimTarget;
-	else
-		img = roimIntermediate;
 	if (img.channels() > 1)
 		cvtColor(img, gray, COLOR_BGR2GRAY);
 	else
@@ -1045,15 +1056,11 @@ int ocvSwapFaces(TImgSelect type1, TImgSelect type2, int dkId)
 		roimSource.convertTo(img1, CV_32F);
 	else if (type1 == OCW_IMAGE_TARGET)
 		roimTarget.convertTo(img1, CV_32F);
-	else
-		roimIntermediate.convertTo(img1, CV_32F);
 	// output
 	if (type2 == OCW_IMAGE_SOURCE)
 		img2 = roimSource;
 	else if (type2 == OCW_IMAGE_TARGET)
 		img2 = roimTarget;
-	else
-		img2 = roimIntermediate;
 	img2.convertTo(img1Warped, CV_32F);
 	//unsigned int numswaps = (unsigned int)std::min((unsigned int)points1.size(), (unsigned int)points2.size());
 	// Find convex hull
@@ -1063,10 +1070,10 @@ int ocvSwapFaces(TImgSelect type1, TImgSelect type2, int dkId)
 	//convexHull(Mat(points2), index, false, false);
 	convexHull(points2, index, false, false);
 	for (size_t i = 0; i < index.size(); i++)
-	{
+		{
 		boundary_image1.push_back(points1[index[i]]);
 		boundary_image2.push_back(points2[index[i]]);
-	}
+		}
 	// Triangulation for points on the convex hull
 	std::vector< std::vector<int> > triangles;
 	Rect rect(0, 0, img1Warped.cols, img1Warped.rows);
@@ -1349,28 +1356,393 @@ int ocvTrigonometrius(int kFunc, unsigned int step, unsigned int kernelSize, dou
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
-// DLL entry - inpaint
+// DLL entry - features2d detect and compute
 //-------------------------------------------------------------------------------------------------
-int ocvInpaint(unsigned int patchSize, bool zeroSource)
+int ocvCalcFeatures2D(TFeature2DType type)
 {
 	int nRet = ocvne_checkImgAndRoi();
 	if (nRet)
 		return nRet;
-	// test 1
-	/* Use for small scrathes
-	Mat output;
-	dstMask = 255 - dstMask;
-	ft::inpaint(imgSource, dstMask, output, 3, ft::LINEAR, ft::ITERATIVE);
-	output.convertTo(imgTarget, CV_8U, 1, 0);
-	*/
-	// test 2
-	/* does not work on 32 bit - throws excpetion
+	Mat imSourceGray = Mat(roimSource.rows, roimSource.cols, CV_8UC1);
+	Mat imTargetGray = Mat(roimTarget.rows, roimTarget.cols, CV_8UC1);
+	cvtColor(imgSource, imSourceGray, COLOR_BGR2GRAY);
+	cvtColor(imgTarget, imTargetGray, COLOR_BGR2GRAY);
+	switch (type)
+		{
+		case OCW_FD_AKAZE:
+			{
+			Ptr<AKAZE> fdt = AKAZE::create();
+			fdt->detectAndCompute(imSourceGray, Mat(), keypointsSource, descriptorsSource);
+			fdt->detectAndCompute(imTargetGray, Mat(), keypointsTarget, descriptorsTarget);
+			}	
+			break;
+		case OCW_FD_ORB:
+			{
+			Ptr<Feature2D> fdt = ORB::create(1000);
+			fdt->detectAndCompute(imSourceGray, Mat(), keypointsSource, descriptorsSource);
+			fdt->detectAndCompute(imTargetGray, Mat(), keypointsTarget, descriptorsTarget);
+			}
+			break;
+		case OCW_FD_BRISK:
+			{
+			Ptr<BRISK> fdt = BRISK::create();
+			fdt->detectAndCompute(imSourceGray, Mat(), keypointsSource, descriptorsSource);
+			fdt->detectAndCompute(imTargetGray, Mat(), keypointsTarget, descriptorsTarget);
+			}
+			break;
+		case OCW_FD_KAZE:
+			{
+			Ptr<KAZE> fdt = KAZE::create();
+			fdt->detectAndCompute(imSourceGray, Mat(), keypointsSource, descriptorsSource);
+			fdt->detectAndCompute(imTargetGray, Mat(), keypointsTarget, descriptorsTarget);
+			}
+			break;
+		/*
+		case OCW_FD_FAST_DAISY:
+			{
+			Ptr<xfeatures2d::DAISY> fdt = xfeatures2d::DAISY::create();
+			fdt->detectAndCompute(imSourceGray, Mat(), keypointsSource, descriptorsSource);
+			fdt->detectAndCompute(imTargetGray, Mat(), keypointsSource, descriptorsSource);
+			}
+		case OCW_FD_BLOB_DAISY:
+		{
+			int minHessian = 400; //TODO: as input parameter
+			Ptr<xfeatures2d::SURF> fdt = xfeatures2d::SURF::create(minHessian);
+			fdt->detectAndCompute(imSourceGray, Mat(), keypointsSource, descriptorsSource);
+			fdt->detectAndCompute(imTargetGray, Mat(), keypointsSource, descriptorsSource);
+		}
+		*/
+		default:
+			return OCW_ERR_BAD_PARAM;
+		}
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - calculate good matches
+//-------------------------------------------------------------------------------------------------
+int ocvCalcMatches(TMatchType type, float matchParam, bool exportImage)
+{
+	bool brutala = false;
+	std::vector< std::vector< DMatch> > matchlist;
+	std::vector<DMatch> good_matches;
+	switch (type)
+	{
+	case OCW_MT_BRUTE_HAMMING:
+	{
+		brutala = true;
+		Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
+		matcher->match(descriptorsSource, descriptorsTarget, matches, Mat());
+	}
+	break;
+	case OCW_MT_BFM:
+	{
+		Ptr<BFMatcher> matcher = BFMatcher::create(NORM_L2);  // brute with knn possible
+		matcher->knnMatch(descriptorsSource, descriptorsTarget, matchlist, 2, Mat(), false);  // find the best 2
+	}
+	break;
+	case OCW_MT_FLANN:
+	{
+		if (descriptorsSource.type() != CV_32F) 
+			descriptorsSource.convertTo(descriptorsSource, CV_32F);
+		if (descriptorsTarget.type() != CV_32F)
+			descriptorsTarget.convertTo(descriptorsTarget, CV_32F);
+		Ptr<FlannBasedMatcher>matcher = FlannBasedMatcher::create(); // FLANN - Fast Library for Approximate Nearest Neighbors
+		matcher->knnMatch(descriptorsSource, descriptorsTarget, matchlist, 2 );  // find the best 2
+	}
+	break;
+	default:
+		return OCW_ERR_BAD_PARAM;
+	}
+	if (brutala)
+	{
+		// Sort matches by score
+		std::sort(matches.begin(), matches.end());
+		// Remove not so good matches - so, so
+		const int numGoodMatches = (int)((float)matches.size() * matchParam);
+		matches.erase(matches.begin() + numGoodMatches, matches.end());
+	}
+	else
+	{
+		for (unsigned int i = 0; i < matchlist.size(); ++i)
+		{
+			// Apply NNDR
+			if (matchlist[i][0].distance <= matchParam * matchlist[i][1].distance)
+				good_matches.push_back(matchlist[i][0]);
+		}
+		matches = good_matches;
+
+	}
+	// Draw top matches
+	if (exportImage)
+	{
+		drawMatches(imgSource, keypointsSource, imgTarget, keypointsTarget, matches, imgExport);
+		alphaExport = Mat();
+	}
+	else
+		imgExport = Mat();
+	return 0; // matches.size();
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - calculate homography
+//-------------------------------------------------------------------------------------------------
+int ocvCalcHomography(unsigned int minMatches, THomographyType type, bool exportImage, bool addAlpha, bool warp2SS)
+{
+	//TODO: check if previous steps are fullfiled
+	// Extract location of good matches
+	std::vector<Point2f> points1, points2;
+
+	for (size_t i = 0; i < matches.size(); i++)
+	{
+		points1.push_back(keypointsSource[matches[i].queryIdx].pt);
+		points2.push_back(keypointsTarget[matches[i].trainIdx].pt);
+	}
+	if (points1.size() < minMatches)
+	{
+		if (exportImage)
+			imgExport = Mat();
+		return OCW_ERR_NO_EXPORT;
+	}
+	// Find homography
+	int method;
+	switch (type)
+	{
+	case OCW_HOMO_LS:
+		method = 0;
+		break;
+	case OCW_HOMO_RANSAC:
+		method = RANSAC;
+		break;
+	case OCW_HOMO_LMEDS:
+		method = LMEDS;
+		break;
+	case OCW_HOMO_RHO:
+		method = RHO;
+		break;
+	default:
+		return OCW_ERR_BAD_PARAM;
+	}
+	// save for recalculation
+	lastHomography.minMatches = minMatches;
+	lastHomography.type = type;
+	lastHomography.outImage = exportImage;
+	lastHomography.warp2SS = warp2SS;
+	// get homography
+	homography = findHomography(points1, points2, homoMask, method);
+	// Use homography to warp image
+	if (exportImage)
+	{
+		Size size = warp2SS ? imgSource.size() : imgTarget.size();
+		warpPerspective(imgSource, imgExport, homography, size);
+		if (alphaSource.empty())
+		{
+			if (addAlpha)
+			{
+				Mat alpha = Mat(imgSource.rows, imgSource.cols, CV_8UC1, Scalar(255));
+				warpPerspective(alpha, alphaExport, homography, size);
+			}
+			else
+				alphaExport = Mat();
+		}
+		else
+			warpPerspective(alphaSource, alphaExport, homography, size);
+	}
+	else
+		imgExport = Mat();
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - recaulcalte homography (outliers -> matches)
+//-------------------------------------------------------------------------------------------------
+int ocvRecalcHomography(void)
+{
+	if (matches.size() != homoMask.rows)
+		return false;
+	bool value;
+	//BYTE *data = (BYTE*)(homoMask.data);
+	std::vector<DMatch> newMatches;
+	for (int i = 0; i < homoMask.rows; i++) // must be equal the size of matches
+	{
+		value = homoMask.at<bool>(i, 0);
+		if (!value)	// move only outliers
+			newMatches.push_back(matches[i]);
+	}
+	// copy new matches to matches vector
+	matches.clear();
+	matches = newMatches;
+	return ocvCalcHomography(lastHomography.minMatches, lastHomography.type, lastHomography.outImage, lastHomography.warp2SS);
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry -  get inlier / outliers
+//-------------------------------------------------------------------------------------------------
+int ocvGetHomorgaphyData(int &inliers, int &outliers)
+{
+	if (homoMask.step == 0)
+		return OCW_ERR_EMPTY_DATA;
+	bool value;
+	inliers = 0, outliers = 0;
+	for (int i = 0; i < homoMask.rows; i++)
+	{
+		value = homoMask.at<bool>(i, 0);
+		if (value)
+			inliers++;
+		else
+			outliers++;
+	}
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - inpaint
+//-------------------------------------------------------------------------------------------------
+int ocvInpaint(TInpaintType type, double radius)
+{
+	int nRet = ocvne_checkImgAndRoi();
+	if (nRet)
+		return nRet;
+	if (maskSource.empty())
+		return OCW_ERR_NO_SOURCE_MASK;
+	if (maskSource.channels() != 1)
+		return OCW_ERR_BAD_SOURCE_MASK;
+	Mat output, mask = maskSource;
+	threshold(mask, mask, 127, 255, THRESH_BINARY | THRESH_OTSU);
+	switch (type)
+		{
+		case OCW_INPAINT_NS:
+			inpaint(imgSource, mask, imgTarget, radius, INPAINT_NS);
+			break;
+		case OCW_INPAINT_TELEA:
+			inpaint(imgSource, mask, imgTarget, radius, INPAINT_TELEA);
+			break;
+		case OCW_INPAINT_FUZZY_ONESTEP:
+			bitwise_not(mask, mask);
+			ft::inpaint(imgSource, mask, output, (int)radius, ft::LINEAR, ft::ONE_STEP);
+			output.convertTo(imgTarget, CV_8U, 1, 0);
+			break;
+		case OCW_INPAINT_FUZZY_MULTISTEP:
+			bitwise_not(mask, mask);
+			ft::inpaint(imgSource, mask, output, (int)radius, ft::LINEAR, ft::MULTI_STEP);
+			output.convertTo(imgTarget, CV_8U, 1, 0);
+			break;
+		case OCW_INPAINT_FUZZY_ITERATIVE:
+			bitwise_not(mask, mask);
+			ft::inpaint(imgSource, mask, output, (int)radius, ft::LINEAR, ft::ITERATIVE);
+			output.convertTo(imgTarget, CV_8U, 1, 0);
+			break;
+		default:
+			return OCW_ERR_BAD_TYPE;
+		}
+	// test SHIFT_MAP
+	// 32 bit version - throws excpetion after looong execution time - I'll try to test it on 4.2.0+
+	/*
 	Mat inpC, outC;
-	dstMask = 255 - dstMask;
+	Mat dstMask = maskSource;
+	bitwise_not(maskSource, dstMask);
+	threshold(dstMask, dstMask, 127, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+	//Mat dstMask = maskSource;
 	cvtColor(imgSource, inpC, COLOR_BGR2Lab);
+	Mat res(inpC.size(), inpC.type());
+	//inpC = roimSource;
+	//outC = Mat::zeros(inpC.rows, inpC.cols, inpC.depth());
 	//outC = inpC.clone();
-	xphoto::inpaint(inpC, dstMask, outC, xphoto::INPAINT_SHIFTMAP);
+	xphoto::inpaint(inpC, dstMask, res, xphoto::INPAINT_SHIFTMAP);	
 	*/
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - DNN - colorization
+//-------------------------------------------------------------------------------------------------
+int ocvColorize(int dkId)
+{
+	int nRet = ocvne_checkImgAndRoi();
+	if (nRet)
+		return nRet;
+	TocvDataKeeper *dk = ocvne_getDK(dkId);
+	if (dk == 0)
+		return OCW_ERR_NULL_OBJECT;
+	// the 313 ab cluster centers from pts_in_hull.npy (already transposed)
+	static float hull_pts[] = {
+		-90., -90., -90., -90., -90., -80., -80., -80., -80., -80., -80., -80., -80., -70., -70., -70., -70., -70., -70., -70., -70.,
+		-70., -70., -60., -60., -60., -60., -60., -60., -60., -60., -60., -60., -60., -60., -50., -50., -50., -50., -50., -50., -50., -50.,
+		-50., -50., -50., -50., -50., -50., -40., -40., -40., -40., -40., -40., -40., -40., -40., -40., -40., -40., -40., -40., -40., -30.,
+		-30., -30., -30., -30., -30., -30., -30., -30., -30., -30., -30., -30., -30., -30., -30., -20., -20., -20., -20., -20., -20., -20.,
+		-20., -20., -20., -20., -20., -20., -20., -20., -20., -10., -10., -10., -10., -10., -10., -10., -10., -10., -10., -10., -10., -10.,
+		-10., -10., -10., -10., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 10., 10., 10., 10., 10., 10., 10.,
+		10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 10., 20., 20., 20., 20., 20., 20., 20., 20., 20., 20., 20., 20., 20., 20., 20.,
+		20., 20., 20., 30., 30., 30., 30., 30., 30., 30., 30., 30., 30., 30., 30., 30., 30., 30., 30., 30., 30., 30., 40., 40., 40., 40.,
+		40., 40., 40., 40., 40., 40., 40., 40., 40., 40., 40., 40., 40., 40., 40., 40., 50., 50., 50., 50., 50., 50., 50., 50., 50., 50.,
+		50., 50., 50., 50., 50., 50., 50., 50., 50., 60., 60., 60., 60., 60., 60., 60., 60., 60., 60., 60., 60., 60., 60., 60., 60., 60.,
+		60., 60., 60., 70., 70., 70., 70., 70., 70., 70., 70., 70., 70., 70., 70., 70., 70., 70., 70., 70., 70., 70., 70., 80., 80., 80.,
+		80., 80., 80., 80., 80., 80., 80., 80., 80., 80., 80., 80., 80., 80., 80., 80., 90., 90., 90., 90., 90., 90., 90., 90., 90., 90.,
+		90., 90., 90., 90., 90., 90., 90., 90., 90., 100., 100., 100., 100., 100., 100., 100., 100., 100., 100., 50., 60., 70., 80., 90.,
+		20., 30., 40., 50., 60., 70., 80., 90., 0., 10., 20., 30., 40., 50., 60., 70., 80., 90., -20., -10., 0., 10., 20., 30., 40., 50.,
+		60., 70., 80., 90., -30., -20., -10., 0., 10., 20., 30., 40., 50., 60., 70., 80., 90., 100., -40., -30., -20., -10., 0., 10., 20.,
+		30., 40., 50., 60., 70., 80., 90., 100., -50., -40., -30., -20., -10., 0., 10., 20., 30., 40., 50., 60., 70., 80., 90., 100., -50.,
+		-40., -30., -20., -10., 0., 10., 20., 30., 40., 50., 60., 70., 80., 90., 100., -60., -50., -40., -30., -20., -10., 0., 10., 20.,
+		30., 40., 50., 60., 70., 80., 90., 100., -70., -60., -50., -40., -30., -20., -10., 0., 10., 20., 30., 40., 50., 60., 70., 80., 90.,
+		100., -80., -70., -60., -50., -40., -30., -20., -10., 0., 10., 20., 30., 40., 50., 60., 70., 80., 90., -80., -70., -60., -50.,
+		-40., -30., -20., -10., 0., 10., 20., 30., 40., 50., 60., 70., 80., 90., -90., -80., -70., -60., -50., -40., -30., -20., -10.,
+		0., 10., 20., 30., 40., 50., 60., 70., 80., 90., -100., -90., -80., -70., -60., -50., -40., -30., -20., -10., 0., 10., 20., 30.,
+		40., 50., 60., 70., 80., 90., -100., -90., -80., -70., -60., -50., -40., -30., -20., -10., 0., 10., 20., 30., 40., 50., 60., 70.,
+		80., -110., -100., -90., -80., -70., -60., -50., -40., -30., -20., -10., 0., 10., 20., 30., 40., 50., 60., 70., 80., -110., -100.,
+		-90., -80., -70., -60., -50., -40., -30., -20., -10., 0., 10., 20., 30., 40., 50., 60., 70., 80., -110., -100., -90., -80., -70.,
+		-60., -50., -40., -30., -20., -10., 0., 10., 20., 30., 40., 50., 60., 70., -110., -100., -90., -80., -70., -60., -50., -40., -30.,
+		-20., -10., 0., 10., 20., 30., 40., 50., 60., 70., -90., -80., -70., -60., -50., -40., -30., -20., -10., 0.
+	};
+	// fixed input size for the pretrained network
+	const int W_in = 224;
+	const int H_in = 224;
+	// setup additional layers
+	int sz[] = { 2, 313, 1, 1 };
+	const Mat pts_in_hull(4, sz, CV_32F, hull_pts);
+	Ptr<dnn::Layer> class8_ab = dk->DnnNetwork.getLayer("class8_ab");
+	class8_ab->blobs.push_back(pts_in_hull);
+	Ptr<dnn::Layer> conv8_313_rh = dk->DnnNetwork.getLayer("conv8_313_rh");
+	conv8_313_rh->blobs.push_back(Mat(1, 313, CV_32F, Scalar(2.606)));
+	// extract L channel and subtract mean
+	Mat lab, L, input;
+	Mat imgWork;
+	//roimSource.convertTo(imgWork, CV_8U, 1, 0);
+	//imgWork.convertTo(imgWork, CV_32F, 1.0 / 255);
+	roimSource.convertTo(imgWork, CV_32F, 1.0 / 255);
+	cvtColor(imgWork, lab, COLOR_BGR2Lab);
+	extractChannel(lab, L, 0);
+	resize(L, input, Size(W_in, H_in));
+	input -= 50;
+	// run the L channel through the network
+	Mat inputBlob = dnn::blobFromImage(input);
+	dk->DnnNetwork.setInput(inputBlob);
+	Mat result = dk->DnnNetwork.forward();
+	// retrieve the calculated a,b channels from the network output
+	Size siz(result.size[2], result.size[3]);
+	Mat a = Mat(siz, CV_32F, result.ptr(0, 0));
+	Mat b = Mat(siz, CV_32F, result.ptr(0, 1));
+	resize(a, a, roimTarget.size());
+	resize(b, b, roimTarget.size());
+	// merge, and convert back to BGR
+	Mat color, chn[] = { L, a, b };
+	merge(chn, 3, lab);
+	cvtColor(lab, color, COLOR_Lab2BGR);
+	//color = color * 255;
+	color.convertTo(color, CV_8U, 255);
+	color.copyTo(roimTarget);	
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - seamless clonning 
+//-------------------------------------------------------------------------------------------------
+int ocvSeamlessClone(int centerX, int centerY, TCloneType type)
+{
+	int nRet = ocvne_checkImgAndRoi();
+	if (nRet)
+		return nRet;
+	Mat mask;
+	if (maskSource.empty())
+		mask = Mat(imgSource.rows, imgSource.cols, CV_8UC1, Scalar(255));
+	else
+		mask = maskSource;
+	Point p;
+	p.x = centerX;
+	p.y = centerY;
+	seamlessClone(imgSource, imgTarget, mask, p, imgTarget, type);
 	return 0;
 }
 //TODO: grabcut, watershed, hough circles/rects, etc...

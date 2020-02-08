@@ -6,7 +6,7 @@
         <AppType>Application</AppType>
         <MainSource>projLips.cpp</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
     </PropertyGroup>
@@ -66,7 +66,7 @@
         <UWP_CppLogo44>$(BDS)\bin\Artwork\Windows\UWP\cppreg_UwpDefault_44.png</UWP_CppLogo44>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <ILINK_LibraryPath>spLipsHost\frames\;..\MyComponentsXE\;spLipsHost\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
-        <AllPackageLibs>rtl.lib;vcl.lib;PKIECtrl24.lib;vclx.lib;tmsdXE10.lib;adortl.lib;dbrtl.lib;xmlrtl.lib;vclactnband.lib;vclimg.lib;vcldb.lib;VclSmp.lib;tmsexdXE10.lib;DbxCommonDriver.lib;dsnap.lib;soaprtl.lib;inet.lib;cxLibraryRS24.lib;dxGDIPlusRS24.lib;dxCoreRS24.lib;dxThemeRS24.lib;cxEditorsRS24.lib;dxOfficeCoreRS24.lib;cxDataRS24.lib;dxSkinsCoreRS24.lib;dxSkinBlackRS24.lib;dxSkinBlueprintRS24.lib;dxSkinBlueRS24.lib;dxSkinCaramelRS24.lib;dxSkinCoffeeRS24.lib;dxSkinDarkRoomRS24.lib;dxSkinDarkSideRS24.lib;dxSkinDevExpressDarkStyleRS24.lib;dxSkinDevExpressStyleRS24.lib;dxSkinFoggyRS24.lib;dxSkinGlassOceansRS24.lib;dxSkinHighContrastRS24.lib;dxSkiniMaginaryRS24.lib;dxSkinLilianRS24.lib;dxSkinLiquidSkyRS24.lib;dxSkinLondonLiquidSkyRS24.lib;dxSkinMcSkinRS24.lib;dxSkinMetropolisDarkRS24.lib;dxSkinMetropolisRS24.lib;dxSkinMoneyTwinsRS24.lib;dxSkinOffice2007BlackRS24.lib;dxSkinOffice2007BlueRS24.lib;dxSkinOffice2007GreenRS24.lib;dxSkinOffice2007PinkRS24.lib;dxSkinOffice2007SilverRS24.lib;dxSkinOffice2010BlackRS24.lib;dxSkinOffice2010BlueRS24.lib;dxSkinOffice2010SilverRS24.lib;dxSkinOffice2013DarkGrayRS24.lib;dxSkinOffice2013LightGrayRS24.lib;dxSkinOffice2013WhiteRS24.lib;dxSkinOffice2016ColorfulRS24.lib;dxSkinOffice2016DarkRS24.lib;dxSkinPumpkinRS24.lib;dxSkinSevenClassicRS24.lib;dxSkinSevenRS24.lib;dxSkinSharpPlusRS24.lib;dxSkinSharpRS24.lib;dxSkinSilverRS24.lib;dxSkinSpringTimeRS24.lib;dxSkinStardustRS24.lib;dxSkinSummer2008RS24.lib;dxSkinTheAsphaltWorldRS24.lib;dxSkinValentineRS24.lib;dxSkinVisualStudio2013BlueRS24.lib;dxSkinVisualStudio2013DarkRS24.lib;dxSkinVisualStudio2013LightRS24.lib;dxSkinVS2010RS24.lib;dxSkinWhiteprintRS24.lib;dxSkinXmas2008BlueRS24.lib;cxPageControlRS24.lib;SigmaPiPack.lib</AllPackageLibs>
+        <AllPackageLibs>rtl.lib;vcl.lib;PKIECtrl24.lib;vclx.lib;tmsdXE10.lib;adortl.lib;dbrtl.lib;xmlrtl.lib;vclactnband.lib;vclimg.lib;vcldb.lib;VclSmp.lib;tmsexdXE10.lib;DbxCommonDriver.lib;dsnap.lib;soaprtl.lib;inet.lib;cxLibraryRS24.lib;dxGDIPlusRS24.lib;dxCoreRS24.lib;dxThemeRS24.lib;cxEditorsRS24.lib;dxOfficeCoreRS24.lib;cxDataRS24.lib;dxSkinsCoreRS24.lib;dxSkinBlackRS24.lib;dxSkinBlueprintRS24.lib;dxSkinBlueRS24.lib;dxSkinCaramelRS24.lib;dxSkinCoffeeRS24.lib;dxSkinDarkRoomRS24.lib;dxSkinDarkSideRS24.lib;dxSkinDevExpressDarkStyleRS24.lib;dxSkinDevExpressStyleRS24.lib;dxSkinFoggyRS24.lib;dxSkinGlassOceansRS24.lib;dxSkinHighContrastRS24.lib;dxSkiniMaginaryRS24.lib;dxSkinLilianRS24.lib;dxSkinLiquidSkyRS24.lib;dxSkinLondonLiquidSkyRS24.lib;dxSkinMcSkinRS24.lib;dxSkinMetropolisDarkRS24.lib;dxSkinMetropolisRS24.lib;dxSkinMoneyTwinsRS24.lib;dxSkinOffice2007BlackRS24.lib;dxSkinOffice2007BlueRS24.lib;dxSkinOffice2007GreenRS24.lib;dxSkinOffice2007PinkRS24.lib;dxSkinOffice2007SilverRS24.lib;dxSkinOffice2010BlackRS24.lib;dxSkinOffice2010BlueRS24.lib;dxSkinOffice2010SilverRS24.lib;dxSkinOffice2013DarkGrayRS24.lib;dxSkinOffice2013LightGrayRS24.lib;dxSkinOffice2013WhiteRS24.lib;dxSkinOffice2016ColorfulRS24.lib;dxSkinOffice2016DarkRS24.lib;dxSkinPumpkinRS24.lib;dxSkinSevenClassicRS24.lib;dxSkinSevenRS24.lib;dxSkinSharpPlusRS24.lib;dxSkinSharpRS24.lib;dxSkinSilverRS24.lib;dxSkinSpringTimeRS24.lib;dxSkinStardustRS24.lib;dxSkinSummer2008RS24.lib;dxSkinTheAsphaltWorldRS24.lib;dxSkinValentineRS24.lib;dxSkinVisualStudio2013BlueRS24.lib;dxSkinVisualStudio2013DarkRS24.lib;dxSkinVisualStudio2013LightRS24.lib;dxSkinVS2010RS24.lib;dxSkinWhiteprintRS24.lib;dxSkinXmas2008BlueRS24.lib;cxPageControlRS24.lib;SigmaPiPack.lib;IndyProtocols.lib;IndyCore.lib;IndySystem.lib</AllPackageLibs>
         <_TCHARMapping>wchar_t</_TCHARMapping>
         <IncludePath>spLipsHost\frames\;..\MyComponentsXE\;spLipsHost\;D:\petra\pixopediaXE3264\lipsEngine;$(IncludePath)</IncludePath>
         <SanitizedProjectName>projLips</SanitizedProjectName>
@@ -126,7 +126,8 @@
         <ILINK_TranslatedLibraryPath>$(BDSLIB)\$(PLATFORM)\debug\$(LANGDIR);$(ILINK_TranslatedLibraryPath)</ILINK_TranslatedLibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
-        <LinkPackageStatics>rtl.lib;vcl.lib;PKIECtrl24.lib;vclx.lib;tmsdXE10.lib;adortl.lib;dbrtl.lib;xmlrtl.lib;vclactnband.lib;vclimg.lib;vcldb.lib;VclSmp.lib;tmsexdXE10.lib;DbxCommonDriver.lib;dsnap.lib;soaprtl.lib;inet.lib;cxLibraryRS24.lib;dxGDIPlusRS24.lib;dxCoreRS24.lib;dxThemeRS24.lib;cxEditorsRS24.lib;dxOfficeCoreRS24.lib;cxDataRS24.lib;dxSkinsCoreRS24.lib;dxSkinBlackRS24.lib;dxSkinBlueprintRS24.lib;dxSkinBlueRS24.lib;dxSkinCaramelRS24.lib;dxSkinCoffeeRS24.lib;dxSkinDarkRoomRS24.lib;dxSkinDarkSideRS24.lib;dxSkinDevExpressDarkStyleRS24.lib;dxSkinDevExpressStyleRS24.lib;dxSkinFoggyRS24.lib;dxSkinGlassOceansRS24.lib;dxSkinHighContrastRS24.lib;dxSkiniMaginaryRS24.lib;dxSkinLilianRS24.lib;dxSkinLiquidSkyRS24.lib;dxSkinLondonLiquidSkyRS24.lib;dxSkinMcSkinRS24.lib;dxSkinMetropolisDarkRS24.lib;dxSkinMetropolisRS24.lib;dxSkinMoneyTwinsRS24.lib;dxSkinOffice2007BlackRS24.lib;dxSkinOffice2007BlueRS24.lib;dxSkinOffice2007GreenRS24.lib;dxSkinOffice2007PinkRS24.lib;dxSkinOffice2007SilverRS24.lib;dxSkinOffice2010BlackRS24.lib;dxSkinOffice2010BlueRS24.lib;dxSkinOffice2010SilverRS24.lib;dxSkinOffice2013DarkGrayRS24.lib;dxSkinOffice2013LightGrayRS24.lib;dxSkinOffice2013WhiteRS24.lib;dxSkinOffice2016ColorfulRS24.lib;dxSkinOffice2016DarkRS24.lib;dxSkinPumpkinRS24.lib;dxSkinSevenClassicRS24.lib;dxSkinSevenRS24.lib;dxSkinSharpPlusRS24.lib;dxSkinSharpRS24.lib;dxSkinSilverRS24.lib;dxSkinSpringTimeRS24.lib;dxSkinStardustRS24.lib;dxSkinSummer2008RS24.lib;dxSkinTheAsphaltWorldRS24.lib;dxSkinValentineRS24.lib;dxSkinVisualStudio2013BlueRS24.lib;dxSkinVisualStudio2013DarkRS24.lib;dxSkinVisualStudio2013LightRS24.lib;dxSkinVS2010RS24.lib;dxSkinWhiteprintRS24.lib;dxSkinXmas2008BlueRS24.lib;cxPageControlRS24.lib;SigmaPiPack.lib</LinkPackageStatics>
+        <Icon_MainIcon>lua.ico</Icon_MainIcon>
+        <LinkPackageStatics>rtl.lib;vcl.lib;PKIECtrl24.lib;vclx.lib;tmsdXE10.lib;adortl.lib;dbrtl.lib;xmlrtl.lib;vclactnband.lib;vclimg.lib;vcldb.lib;VclSmp.lib;tmsexdXE10.lib;DbxCommonDriver.lib;dsnap.lib;soaprtl.lib;inet.lib;cxLibraryRS24.lib;dxGDIPlusRS24.lib;dxCoreRS24.lib;dxThemeRS24.lib;cxEditorsRS24.lib;dxOfficeCoreRS24.lib;cxDataRS24.lib;dxSkinsCoreRS24.lib;dxSkinBlackRS24.lib;dxSkinBlueprintRS24.lib;dxSkinBlueRS24.lib;dxSkinCaramelRS24.lib;dxSkinCoffeeRS24.lib;dxSkinDarkRoomRS24.lib;dxSkinDarkSideRS24.lib;dxSkinDevExpressDarkStyleRS24.lib;dxSkinDevExpressStyleRS24.lib;dxSkinFoggyRS24.lib;dxSkinGlassOceansRS24.lib;dxSkinHighContrastRS24.lib;dxSkiniMaginaryRS24.lib;dxSkinLilianRS24.lib;dxSkinLiquidSkyRS24.lib;dxSkinLondonLiquidSkyRS24.lib;dxSkinMcSkinRS24.lib;dxSkinMetropolisDarkRS24.lib;dxSkinMetropolisRS24.lib;dxSkinMoneyTwinsRS24.lib;dxSkinOffice2007BlackRS24.lib;dxSkinOffice2007BlueRS24.lib;dxSkinOffice2007GreenRS24.lib;dxSkinOffice2007PinkRS24.lib;dxSkinOffice2007SilverRS24.lib;dxSkinOffice2010BlackRS24.lib;dxSkinOffice2010BlueRS24.lib;dxSkinOffice2010SilverRS24.lib;dxSkinOffice2013DarkGrayRS24.lib;dxSkinOffice2013LightGrayRS24.lib;dxSkinOffice2013WhiteRS24.lib;dxSkinOffice2016ColorfulRS24.lib;dxSkinOffice2016DarkRS24.lib;dxSkinPumpkinRS24.lib;dxSkinSevenClassicRS24.lib;dxSkinSevenRS24.lib;dxSkinSharpPlusRS24.lib;dxSkinSharpRS24.lib;dxSkinSilverRS24.lib;dxSkinSpringTimeRS24.lib;dxSkinStardustRS24.lib;dxSkinSummer2008RS24.lib;dxSkinTheAsphaltWorldRS24.lib;dxSkinValentineRS24.lib;dxSkinVisualStudio2013BlueRS24.lib;dxSkinVisualStudio2013DarkRS24.lib;dxSkinVisualStudio2013LightRS24.lib;dxSkinVS2010RS24.lib;dxSkinWhiteprintRS24.lib;dxSkinXmas2008BlueRS24.lib;cxPageControlRS24.lib;SigmaPiPack.lib;IndyProtocols.lib;IndyCore.lib;IndySystem.lib</LinkPackageStatics>
         <UsePackages>false</UsePackages>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -148,10 +149,12 @@
         <TASM_Debugging>None</TASM_Debugging>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <LinkPackageStatics>rtl.lib;vcl.lib;PKIECtrl24.lib;vclx.lib;tmsdXE10.lib;adortl.lib;dbrtl.lib;xmlrtl.lib;vclactnband.lib;vclimg.lib;vcldb.lib;VclSmp.lib;tmsexdXE10.lib;DbxCommonDriver.lib;dsnap.lib;soaprtl.lib;inet.lib;cxLibraryRS24.lib;dxGDIPlusRS24.lib;dxCoreRS24.lib;dxThemeRS24.lib;cxEditorsRS24.lib;dxOfficeCoreRS24.lib;cxDataRS24.lib;dxSkinsCoreRS24.lib;dxSkinBlackRS24.lib;dxSkinBlueprintRS24.lib;dxSkinBlueRS24.lib;dxSkinCaramelRS24.lib;dxSkinCoffeeRS24.lib;dxSkinDarkRoomRS24.lib;dxSkinDarkSideRS24.lib;dxSkinDevExpressDarkStyleRS24.lib;dxSkinDevExpressStyleRS24.lib;dxSkinFoggyRS24.lib;dxSkinGlassOceansRS24.lib;dxSkinHighContrastRS24.lib;dxSkiniMaginaryRS24.lib;dxSkinLilianRS24.lib;dxSkinLiquidSkyRS24.lib;dxSkinLondonLiquidSkyRS24.lib;dxSkinMcSkinRS24.lib;dxSkinMetropolisDarkRS24.lib;dxSkinMetropolisRS24.lib;dxSkinMoneyTwinsRS24.lib;dxSkinOffice2007BlackRS24.lib;dxSkinOffice2007BlueRS24.lib;dxSkinOffice2007GreenRS24.lib;dxSkinOffice2007PinkRS24.lib;dxSkinOffice2007SilverRS24.lib;dxSkinOffice2010BlackRS24.lib;dxSkinOffice2010BlueRS24.lib;dxSkinOffice2010SilverRS24.lib;dxSkinOffice2013DarkGrayRS24.lib;dxSkinOffice2013LightGrayRS24.lib;dxSkinOffice2013WhiteRS24.lib;dxSkinOffice2016ColorfulRS24.lib;dxSkinOffice2016DarkRS24.lib;dxSkinPumpkinRS24.lib;dxSkinSevenClassicRS24.lib;dxSkinSevenRS24.lib;dxSkinSharpPlusRS24.lib;dxSkinSharpRS24.lib;dxSkinSilverRS24.lib;dxSkinSpringTimeRS24.lib;dxSkinStardustRS24.lib;dxSkinSummer2008RS24.lib;dxSkinTheAsphaltWorldRS24.lib;dxSkinValentineRS24.lib;dxSkinVisualStudio2013BlueRS24.lib;dxSkinVisualStudio2013DarkRS24.lib;dxSkinVisualStudio2013LightRS24.lib;dxSkinVS2010RS24.lib;dxSkinWhiteprintRS24.lib;dxSkinXmas2008BlueRS24.lib;cxPageControlRS24.lib;SigmaPiPack.lib;IndyProtocols.lib;IndyCore.lib;IndySystem.lib</LinkPackageStatics>
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppEnableHighDPI>true</AppEnableHighDPI>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
+        <LinkPackageStatics>rtl.lib;vcl.lib;PKIECtrl24.lib;vclx.lib;tmsdXE10.lib;adortl.lib;dbrtl.lib;xmlrtl.lib;vclactnband.lib;vclimg.lib;vcldb.lib;VclSmp.lib;tmsexdXE10.lib;DbxCommonDriver.lib;dsnap.lib;soaprtl.lib;inet.lib;cxLibraryRS24.lib;dxGDIPlusRS24.lib;dxCoreRS24.lib;dxThemeRS24.lib;cxEditorsRS24.lib;dxOfficeCoreRS24.lib;cxDataRS24.lib;dxSkinsCoreRS24.lib;dxSkinBlackRS24.lib;dxSkinBlueprintRS24.lib;dxSkinBlueRS24.lib;dxSkinCaramelRS24.lib;dxSkinCoffeeRS24.lib;dxSkinDarkRoomRS24.lib;dxSkinDarkSideRS24.lib;dxSkinDevExpressDarkStyleRS24.lib;dxSkinDevExpressStyleRS24.lib;dxSkinFoggyRS24.lib;dxSkinGlassOceansRS24.lib;dxSkinHighContrastRS24.lib;dxSkiniMaginaryRS24.lib;dxSkinLilianRS24.lib;dxSkinLiquidSkyRS24.lib;dxSkinLondonLiquidSkyRS24.lib;dxSkinMcSkinRS24.lib;dxSkinMetropolisDarkRS24.lib;dxSkinMetropolisRS24.lib;dxSkinMoneyTwinsRS24.lib;dxSkinOffice2007BlackRS24.lib;dxSkinOffice2007BlueRS24.lib;dxSkinOffice2007GreenRS24.lib;dxSkinOffice2007PinkRS24.lib;dxSkinOffice2007SilverRS24.lib;dxSkinOffice2010BlackRS24.lib;dxSkinOffice2010BlueRS24.lib;dxSkinOffice2010SilverRS24.lib;dxSkinOffice2013DarkGrayRS24.lib;dxSkinOffice2013LightGrayRS24.lib;dxSkinOffice2013WhiteRS24.lib;dxSkinOffice2016ColorfulRS24.lib;dxSkinOffice2016DarkRS24.lib;dxSkinPumpkinRS24.lib;dxSkinSevenClassicRS24.lib;dxSkinSevenRS24.lib;dxSkinSharpPlusRS24.lib;dxSkinSharpRS24.lib;dxSkinSilverRS24.lib;dxSkinSpringTimeRS24.lib;dxSkinStardustRS24.lib;dxSkinSummer2008RS24.lib;dxSkinTheAsphaltWorldRS24.lib;dxSkinValentineRS24.lib;dxSkinVisualStudio2013BlueRS24.lib;dxSkinVisualStudio2013DarkRS24.lib;dxSkinVisualStudio2013LightRS24.lib;dxSkinVS2010RS24.lib;dxSkinWhiteprintRS24.lib;dxSkinXmas2008BlueRS24.lib;cxPageControlRS24.lib;SigmaPiPack.lib;IndyProtocols.lib;IndyCore.lib;IndySystem.lib</LinkPackageStatics>
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppEnableHighDPI>true</AppEnableHighDPI>
     </PropertyGroup>
@@ -163,10 +166,6 @@
             <BuildOrder>1</BuildOrder>
             <PCH>true</PCH>
         </PCHCompile>
-        <CppCompile Include="spLipsHost\commonHelper.cpp">
-            <DependentOn>spLipsHost\commonHelper.h</DependentOn>
-            <BuildOrder>4</BuildOrder>
-        </CppCompile>
         <CppCompile Include="spLipsHost\frames\FrameCheckBoxU.cpp">
             <Form>FrameCheckBox</Form>
             <FormType>dfm</FormType>
@@ -209,6 +208,13 @@
             <DependentOn>spLipsHost\frames\FrameListBoxU.h</DependentOn>
             <BuildOrder>11</BuildOrder>
         </CppCompile>
+        <CppCompile Include="spLipsHost\frames\FrameShellComboBoxU.cpp">
+            <Form>FrameShellComboBox</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TFrame</DesignClass>
+            <DependentOn>spLipsHost\frames\FrameShellComboBoxU.h</DependentOn>
+            <BuildOrder>13</BuildOrder>
+        </CppCompile>
         <CppCompile Include="spLipsHost\frames\FrameSliderU.cpp">
             <Form>FrameSlider</Form>
             <FormType>dfm</FormType>
@@ -222,6 +228,16 @@
             <DependentOn>spLipsHost\frmLipsU.h</DependentOn>
             <BuildOrder>2</BuildOrder>
         </CppCompile>
+        <CppCompile Include="spLipsHost\lipsDownload.cpp">
+            <Form>frmDownload</Form>
+            <FormType>dfm</FormType>
+            <DependentOn>spLipsHost\lipsDownload.h</DependentOn>
+            <BuildOrder>14</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="spLipsHost\lipsHelper.cpp">
+            <DependentOn>spLipsHost\lipsHelper.h</DependentOn>
+            <BuildOrder>4</BuildOrder>
+        </CppCompile>
         <LibFiles Include="Win32\Debug\lipsEngine.lib" Condition="'$(Platform)'=='Win32'">
             <BuildOrder>6</BuildOrder>
             <IgnorePath>true</IgnorePath>
@@ -230,14 +246,16 @@
             <BuildOrder>12</BuildOrder>
             <IgnorePath>true</IgnorePath>
         </LibFiles>
-        <FormResources Include="spLipsHost\frames\FrameSliderU.dfm"/>
-        <FormResources Include="spLipsHost\frames\FrameListBoxU.dfm"/>
-        <FormResources Include="spLipsHost\frames\FrameImageU.dfm"/>
         <FormResources Include="spLipsHost\frmLipsU.dfm"/>
+        <FormResources Include="spLipsHost\frames\FrameSliderU.dfm"/>
+        <FormResources Include="spLipsHost\frames\FrameShellComboBoxU.dfm"/>
+        <FormResources Include="spLipsHost\lipsDownload.dfm"/>
+        <FormResources Include="spLipsHost\frames\FrameListBoxU.dfm"/>
+        <FormResources Include="spLipsHost\frames\FrameCheckBoxU.dfm"/>
+        <FormResources Include="spLipsHost\frames\FrameComboBoxU.dfm"/>
+        <FormResources Include="spLipsHost\frames\FrameImageU.dfm"/>
         <FormResources Include="spLipsHost\frames\FrameImageSliderU.dfm"/>
         <FormResources Include="spLipsHost\frames\FrameImageComboU.dfm"/>
-        <FormResources Include="spLipsHost\frames\FrameComboBoxU.dfm"/>
-        <FormResources Include="spLipsHost\frames\FrameCheckBoxU.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -313,6 +331,18 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="Win64\Debug\lipsEngine.a" Configuration="Debug" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\projLips.tds" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win32">
+                        <RemoteName>projLips.tds</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'=='true'" LocalName="$(BDS)\bin\cc32240mt.dll" Class="DependencyModule">
                     <Platform Name="Win32">
                         <Overwrite>true</Overwrite>
@@ -350,27 +380,12 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployClass Name="DependencyModule">
-                    <Platform Name="Win32">
-                        <Operation>0</Operation>
-                        <Extensions>.dll;.bpl</Extensions>
-                    </Platform>
+                <DeployClass Name="ProjectiOSDeviceResourceRules">
                     <Platform Name="iOSDevice64">
                         <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                    <Platform Name="OSX32">
-                        <RemoteDir>Contents\MacOS</RemoteDir>
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
                     </Platform>
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                    <Platform Name="iOSSimulator">
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="ProjectOSXResource">
@@ -749,12 +764,27 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <DeployClass Name="ProjectiOSDeviceResourceRules">
+                <DeployClass Name="DependencyModule">
+                    <Platform Name="Win32">
+                        <Operation>0</Operation>
+                        <Extensions>.dll;.bpl</Extensions>
+                    </Platform>
                     <Platform Name="iOSDevice64">
                         <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="OSX32">
+                        <RemoteDir>Contents\MacOS</RemoteDir>
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
                     </Platform>
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="iOSSimulator">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>

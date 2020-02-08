@@ -13,8 +13,10 @@ TLuaHost::TLuaHost(void)
 OnLuaProgress = 0;
 OnLuaSendMessage = 0;
 OnLuaRequireParams = 0;
+OnLuaRefreshParams = 0;
 OnLuaLoadImage = 0;
 OnLuaHostDialog = 0;
+OnLuaSendCommand = 0;
 FOpenCV.sourceId = 0;
 FOpenCV.targetId = 0;
 FDKIdx = -1;
@@ -95,13 +97,30 @@ if (OnLuaRequireParams)
    OnLuaRequireParams(FLuaParameters.c_str());
 }
 //---------------------------------------------------------------------------
+// refresh params (previously built by require)
+void TLuaHost::RefreshParams(void)
+{
+AnsiString fakeParam = "all";
+if (OnLuaRefreshParams)
+   OnLuaRefreshParams(fakeParam.c_str());
+}
+//---------------------------------------------------------------------------
 // require parameter list
-int TLuaHost::HostDialog(const char *dialogText)
+int TLuaHost::HostDialog(const char *dialogText, int type)
 {
 if (OnLuaHostDialog)
-   return OnLuaHostDialog(dialogText);
+   return OnLuaHostDialog(dialogText, type);
 else
    return 1;    // proceed
+}
+//---------------------------------------------------------------------------
+// send message
+bool TLuaHost::SendCommand(const char *cmd,  const char *parList)
+{
+FLuaMessage = AnsiString(cmd);
+if (OnLuaSendCommand)
+   return (OnLuaSendCommand(cmd, parList));
+return false;
 }
 //---------------------------------------------------------------------------
 // image routines
@@ -349,6 +368,19 @@ TImageCommon::FBUnPrepare(fbgData);
 return true;
 }
 //---------------------------------------------------------------------------
+// checker
+bool TLuaHost::Checker(const char *cmd, const char* param)
+{
+bool lRet = false;
+String sCmd  = String(cmd).LowerCase();
+String sParam = String(param).LowerCase();
+if (sCmd == "fileexists")
+   {
+   lRet = FileExists(sParam);
+   }
+return lRet;
+}
+//---------------------------------------------------------------------------
 // OpenCV block
 //---------------------------------------------------------------------------
 // opencv set - images and other thing
@@ -384,6 +416,20 @@ else if (strProc == "target")
 		   rc = ocvSetImage(ocvType, img->width, img->height, img->plane[0], img->imageStride);
 	   }
    }
+if (strProc == "srcmask")
+   {
+   img = TImageCommon::GetImageFromId(id);
+   FOpenCV.srcMaskId = id;
+   ocvType = OCW_MASK_SOURCE;
+   if (id != 0)
+	   {
+	   if (img->orientation)
+		   rc = ocvSetImage(ocvType, img->width, img->height, img->plane[img->height-1], img->imageStride);
+	   else
+		   rc = ocvSetImage(ocvType, img->width, img->height, img->plane[0], img->imageStride);
+	   }
+   }
+
 else if (strProc == "cleardk")
    {
    ocvClearDK(id);
@@ -502,6 +548,10 @@ try {
 	if (strProc == "swapfaces")
 	   {
 	   rc = ocvSwapFaces(OCW_IMAGE_SOURCE, OCW_IMAGE_TARGET, FDKIdx);
+	   }
+	else if (strProc == "colorize")
+	   {
+	   rc = ocvColorize(FDKIdx);
 	   }
 	else
 	   {
@@ -838,10 +888,6 @@ try {
 	   int dynRatio = StrToInt(tokens[1]);
 	   rc = ocvOilPainting(size, dynRatio);
 	   }
-	else if (strProc == "loaddnn")
-	   {
-	   rc = ocvDnnReadModel(strParams.c_str(), FDKIdx);
-	   }
 	else if (strProc == "styletransfer")
 	   {
 	   // parse parameters
@@ -866,6 +912,48 @@ try {
 	   bool exportImage = StrToBool(tokens[3].Trim());
 	   int flag = StrToInt(tokens[4]);
 	   rc = ocvWarpPolar(x, y, maxRadius, exportImage, flag);
+	   }
+	else if (strProc == "features2d")
+	   {
+	   // parse parameters
+	   if (tokens.Length < 1)
+		  throw tokens.Length;
+	   int type = StrToInt(tokens[0]);
+	   rc = ocvCalcFeatures2D((TFeature2DType)type);
+	   }
+	else if (strProc == "matches2d")
+	   {
+	   // parse parameters
+	   if (tokens.Length < 3)
+		  throw tokens.Length;
+	   int type = StrToInt(tokens[0]);
+	   double matchParam = StrToFloat(tokens[1], fmt);
+	   bool exportImage = StrToBool(tokens[2].Trim());
+	   rc = ocvCalcMatches((TMatchType)type, matchParam, exportImage);
+	   }
+	else if (strProc == "homography2d")
+	   {
+	   // parse parameters
+	   if (tokens.Length < 5)
+		  throw tokens.Length;
+	   unsigned int minMatches = StrToInt(tokens[0]);
+	   int  type    = StrToInt(tokens[1]);
+	   bool exportImage = StrToBool(tokens[2].Trim());
+	   bool addAlpha = StrToBool(tokens[3].Trim());
+	   bool warp2SS = StrToBool(tokens[4].Trim());
+	   rc = ocvCalcHomography(minMatches, (THomographyType)type, exportImage, addAlpha, warp2SS);
+	   }
+	else if (strProc == "seamlessclone")
+	   {
+	   // parse parameters
+	   if (tokens.Length < 2)
+		  throw tokens.Length;
+	   int centerX = StrToInt(tokens[0]);
+	   int centerY = StrToInt(tokens[1]);
+	   int type = 0;
+	   if (tokens.Length == 3)
+		   type = StrToInt(tokens[2]);
+	   rc = ocvSeamlessClone(centerX, centerY, (TCloneType) type);
 	   }
 	else
 	   {
@@ -915,11 +1003,11 @@ try {
 	   float bias = StrToFloat(tokens1[2], fmt);
 	   // parse kernel
 	   tokens2 = SplitString(strParams2, ",");
-	   if (tokens2.Length <  kernelLength)
+	   if (tokens2.Length <  (int)kernelLength)
 		  throw tokens2.Length;
 	   // parse kernel
 	   float kernel[33*33]; // max kernel = 33x33
-	   for (int i = 0; i < kernelLength; i++)
+	   for (unsigned int i = 0; i < kernelLength; i++)
 		   kernel[i] = StrToFloat(tokens2[i], fmt);
 	   if (tokens1.Length == 3)
 		  rc = ocvFilter2D(kernelSize, kernel, div, bias);
@@ -938,6 +1026,8 @@ try {
 		   rc = ocvFlipInplace(flipCode, OCW_IMAGE_SOURCE);
 	   else if (strParams1 == "target")
 		   rc = ocvFlipInplace(flipCode, OCW_IMAGE_TARGET);
+	   else if (strParams1 == "export")
+		   rc = ocvFlipInplace(flipCode, OCW_IMAGE_EXPORT);
 	   else
 		   {
 		   rc = LERR_INVALID_PARAM;
@@ -967,6 +1057,12 @@ try {
 	   unsigned int minNeighbors = StrToInt(tokens2[3]);
 	   unsigned int minSize = StrToInt(tokens2[4]);
 	   rc = ocvFaceLandmarkDetector(imgSel, FDKIdx, singleFace, extrapolate, scaleFactor, minNeighbors, minSize);
+	   }
+	else if (strProc == "loaddnn")
+	   {
+	   strParams1 = strParams1.Trim().LowerCase();
+	   strParams2 = strParams2.Trim().LowerCase();
+	   rc = ocvDnnReadModel(strParams1.c_str(), strParams2.c_str(), FDKIdx);
 	   }
 	else
 	   {

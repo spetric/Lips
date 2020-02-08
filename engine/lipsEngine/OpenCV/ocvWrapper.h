@@ -49,8 +49,8 @@ extern "C" OCV_API int ocvCanny(double threshold1 = 1, double threshold2 = 3, un
 extern "C" OCV_API int ocvFilter2D(unsigned int kernelSize, float *kernel, float div = 1.0, float bias = 0.0, TBorderType borderType = OCW_BORDER_CONSTANT);
 // image processing - geometric transforms
 extern "C" OCV_API int ocvWarpPolar(int x, int y, double maxRadius, bool exportImage = false, int flag = OCW_INTER_LINEAR);
-extern "C" OCV_API int ocvWarpPerspective(const SocvWarpParams &wparams, bool exportImage = false, int flag = OCW_INTER_LINEAR, TBorderType borderType = OCW_BORDER_CONSTANT);
-extern "C" OCV_API int ocvWarpAffine(const SocvWarpParams &wparams, bool exportImage = false, int flag = OCW_INTER_LINEAR, TBorderType borderType = OCW_BORDER_CONSTANT);
+extern "C" OCV_API int ocvWarpPerspective(const SocvTuple *wparams, bool exportImage = false, int flag = OCW_INTER_LINEAR, TBorderType borderType = OCW_BORDER_CONSTANT);
+extern "C" OCV_API int ocvWarpAffine(const SocvTuple *wparams, bool exportImage = false, int flag = OCW_INTER_LINEAR, TBorderType borderType = OCW_BORDER_CONSTANT);
 extern "C" OCV_API int ocvFlip(int flipCode);
 extern "C" OCV_API int ocvFlipInplace(int flipCode, TImgSelect iSel);
 // image npr
@@ -60,7 +60,7 @@ extern "C" OCV_API int ocvPencilSketch(bool grayscale = true, float sigma_s = 60
 extern "C" OCV_API int ocvStylization(float	sigma_s = 60, float	sigma_r = 0.45f );
 extern "C" OCV_API int ocvOilPainting(int size, int dynRatio);
 // test
-extern "C" OCV_API int ocvDnnReadModel(const wchar_t *model, int dkId);
+extern "C" OCV_API int ocvDnnReadModel(const wchar_t *model, const wchar_t *config, int dkId);
 extern "C" OCV_API int ocvStyleTransfer(int dkId, double scale = 1.0, double meanR = 103.939, double meanG = 116.779, double meanB = 123.680, bool normResult = false, bool swapRB = false);
 extern "C" OCV_API int ocvLoadClassifierAndFaceModel(const wchar_t *cascade_name, const wchar_t *model_name, TFaceModelType type, int dkId);
 extern "C" OCV_API int ocvFaceLandmarkDetector(TImgSelect type, int dkId, bool singleFace = true, bool extrapolate = true, double scaleFactor = 1.05, unsigned int minNeighbors = 3, unsigned int minSize = 30);
@@ -74,5 +74,14 @@ extern "C" OCV_API int ocvHoughLines(TEdgeType type, SocvLineData *exportLines, 
 extern "C" OCV_API int ocvGaborFilter(unsigned int kernelSize = 31, double theta = 0, double sigma = 1, double lambda = 1, double gamma = 0.02, double psi = 0, double ksFactor = 0);
 extern "C" OCV_API int ocvGaborius(unsigned int step = 16, unsigned int kernelSize = 31, double sigma = 4, double lambda = 10, double gamma = 0.5, double psi = 0, double ksFactor = 1.5);
 extern "C" OCV_API int ocvTrigonometrius(int fType = OCW_KF_COS, unsigned int step = 16, unsigned int kernelSize = 31, double hSigma = 0.5, double freq = 3, double ksFactor = 1.5, int margin = -1, double vSigma = 0);
+// feature detection
+extern "C" OCV_API int ocvCalcFeatures2D(TFeature2DType type = OCW_FD_AKAZE);
+extern "C" OCV_API int ocvCalcMatches(TMatchType type = OCW_MT_BRUTE_HAMMING, float matchParam = 0.15f, bool exportImage = true);
+extern "C" OCV_API int ocvCalcHomography(unsigned int MinMatches = 6, THomographyType type = OCW_HOMO_RANSAC, bool exportImage = true, bool addAlpha = true, bool warp2SS = false);
+extern "C" OCV_API int ocvRecalcHomography(void);
+extern "C" OCV_API int ocvGetHomorgaphyData(int &inliers, int &outliers);
 // extra features
-extern "C" OCV_API int ocvInpaint(unsigned int patchSize, bool zeroSource);
+extern "C" OCV_API int ocvInpaint(TInpaintType type = OCW_INPAINT_NS, double radius = 3.0);
+// test
+extern "C" OCV_API int ocvColorize(int dkId);
+extern "C" OCV_API int ocvSeamlessClone(int centerX, int centerY, TCloneType type = OCW_CLONE_MERGE);

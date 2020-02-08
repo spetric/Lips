@@ -17,9 +17,9 @@ object frmLips: TfrmLips
   PixelsPerInch = 96
   TextHeight = 13
   object panMain: TPanel
-    Left = 185
+    Left = 0
     Top = 0
-    Width = 591
+    Width = 776
     Height = 643
     Align = alClient
     BevelOuter = bvNone
@@ -27,18 +27,271 @@ object frmLips: TfrmLips
     Ctl3D = False
     ParentCtl3D = False
     TabOrder = 0
-    object ieView: TImageEnVect
+    object pageMVControl: TcxPageControl
       Left = 0
       Top = 0
-      Width = 589
+      Width = 774
       Height = 641
-      Background = clBtnFace
-      Ctl3D = False
-      ParentCtl3D = False
-      LegacyBitmap = False
-      MouseWheelParams.Action = iemwZoom
       Align = alClient
       TabOrder = 0
+      Properties.ActivePage = tabNormal
+      Properties.CustomButtons.Buttons = <>
+      LookAndFeel.NativeStyle = False
+      LookAndFeel.SkinName = 'Darkroom'
+      ClientRectBottom = 636
+      ClientRectLeft = 5
+      ClientRectRight = 769
+      ClientRectTop = 29
+      object tabNormal: TcxTabSheet
+        Caption = 'Single image view'
+        ImageIndex = 0
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
+        object panSingle: TPanel
+          Left = 0
+          Top = 0
+          Width = 185
+          Height = 607
+          Align = alLeft
+          BevelOuter = bvNone
+          TabOrder = 0
+          object mView: TImageEnMView
+            Left = 0
+            Top = 0
+            Width = 180
+            Height = 536
+            Background = clBtnFace
+            Ctl3D = False
+            ParentCtl3D = False
+            StoreType = ietThumb
+            ThumbWidth = 150
+            ThumbHeight = 150
+            HorizBorder = 4
+            VertBorder = 4
+            ThumbnailOptionsEx = [ietxCenterThumbnailColumn, ietxShowIconForUnknownFormat, ietxShowIconWhileLoading, ietxEnableInternalIcons, ietxStretchSmallImages]
+            OnImageSelect = mViewImageSelect
+            GridWidth = 1
+            SelectionColor = 13542013
+            ImageCacheSize = 10
+            Style = iemsFlat
+            AutoAdjustStyle = False
+            ThumbnailsBackground = clBtnFace
+            ThumbnailsBackgroundSelected = clBtnFace
+            MultiSelectionOptions = []
+            ThumbnailsBorderWidth = 0
+            DefaultTopText = iedtNone
+            DefaultInfoText = iedtNone
+            DefaultBottomText = iedtNone
+            Align = alLeft
+            ThumbnailResampleFilter = rfFastLinear
+            ThumbnailDisplayFilter = rfFastLinear
+            SelectedFontColor = clNone
+            MouseWheelParams.Action = iemwVScroll
+            MouseWheelParamsAlt.Action = iemwZoom
+            TabOrder = 0
+          end
+          object panMVaction: TPanel
+            Left = 0
+            Top = 536
+            Width = 185
+            Height = 71
+            Align = alBottom
+            BevelOuter = bvNone
+            TabOrder = 1
+            object btnClearAdditional: TSpeedButton
+              Left = 5
+              Top = 11
+              Width = 139
+              Height = 22
+              Caption = 'Clear additional images'
+              OnClick = btnClearAdditionalClick
+            end
+            object btnCopy: TSpeedButton
+              Left = 5
+              Top = 39
+              Width = 146
+              Height = 22
+              Caption = 'Copy or swap image(s)'
+              PopupMenu = popupCopy
+              OnClick = btnCopyClick
+            end
+          end
+        end
+        object ieViewSingle: TImageEnVect
+          Left = 185
+          Top = 0
+          Width = 579
+          Height = 607
+          Background = clBtnFace
+          Ctl3D = False
+          ParentCtl3D = False
+          LegacyBitmap = False
+          SelectionBase = iesbBitmap
+          MouseWheelParams.Action = iemwZoom
+          Align = alClient
+          TabOrder = 1
+        end
+      end
+      object tabLayers: TcxTabSheet
+        Caption = 'Layers view'
+        ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
+        object panLayers: TPanel
+          Left = 0
+          Top = 0
+          Width = 185
+          Height = 607
+          Align = alLeft
+          BevelOuter = bvNone
+          TabOrder = 0
+          object layersMView: TImageEnLayerMView
+            Left = 0
+            Top = 0
+            Width = 181
+            Height = 462
+            Background = clBtnFace
+            Ctl3D = False
+            ParentCtl3D = False
+            StoreType = ietThumb
+            ThumbWidth = 150
+            ThumbHeight = 150
+            HorizBorder = 8
+            VertBorder = 8
+            BottomGap = 6
+            UpperGap = 6
+            LeftGap = 6
+            TextMargin = 4
+            ThumbnailOptionsEx = [ietxCenterThumbnailColumn, ietxShowIconForUnknownFormat, ietxShowIconWhileLoading, ietxEnableInternalIcons, ietxStretchSmallImages]
+            OnImageSelect = layersMViewImageSelect
+            KeyInteract = []
+            GridWidth = 1
+            SelectionWidth = 1
+            SelectionColor = 13542013
+            ImageCacheSize = 100
+            Style = iemsFlat
+            AutoAdjustStyle = True
+            ThumbnailsBackground = clWindow
+            ThumbnailsBackgroundSelected = 16575194
+            EnableMultiSelect = True
+            MultiSelectionOptions = [iemoRegion, iemoOptimizeForDragging, iemoSelectOnRightClick, iemoHideSelectionRect]
+            ThumbnailsBorderWidth = 1
+            DefaultTopText = iedtLayerName
+            DefaultInfoText = iedtNone
+            DefaultBottomText = iedtLayerPosition
+            Align = alLeft
+            ThumbnailResampleFilter = rfFastLinear
+            ThumbnailDisplayFilter = rfFastLinear
+            SelectedFontColor = clNone
+            MouseWheelParams.Action = iemwVScroll
+            MouseWheelParamsAlt.Action = iemwZoom
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 0
+            LayerOrder = ieloBackgroundFirst
+          end
+          object panBlender: TPanel
+            Left = 0
+            Top = 462
+            Width = 185
+            Height = 145
+            Align = alBottom
+            BevelOuter = bvNone
+            TabOrder = 1
+            object Label4: TLabel
+              Left = 50
+              Top = 5
+              Width = 69
+              Height = 13
+              Caption = 'Blending mode'
+            end
+            object Label5: TLabel
+              Left = 50
+              Top = 59
+              Width = 66
+              Height = 13
+              Caption = 'Transparency'
+            end
+            object btnLayersMerge: TSpeedButton
+              Left = 2
+              Top = 113
+              Width = 169
+              Height = 27
+              Caption = 'Merge layers to new image'
+              OnClick = btnLayersMergeClick
+            end
+            object editBlend: TpxSpinSlider
+              Left = 7
+              Top = 81
+              Width = 162
+              Height = 21
+              LayoutStyle = lyPixopedia
+              SliderThickness = 8
+              SliderLength = 100
+              MaxInt = 255
+              MaxFloat = 100.000000000000000000
+              FloatIncrementSmall = 0.200000000000000000
+              FloatIncrementLarge = 10.000000000000000000
+              FloatDecimals = 4
+              IntValue = 255
+              IntIncrementSmall = 1
+              IntIncrementLarge = 10
+              CheckLabel.Width = 1
+              CheckLabel.Height = 21
+              CheckLabel.CheckBoxSize = 10
+              CheckLabel.CheckBoxVisible = False
+              CheckLabel.SmoothText = False
+              CheckLabel.PenWidth = 1
+              CheckLabel.CaptionX = 3
+              CheckLabel.CaptionY = 3
+              CheckLabel.Shape = chkSemiLeft
+              CheckLabel.Caption = 'editMeshThickness'
+              PenWidth = 1
+              ColorEdit = 2105376
+              Color = clBtnFace
+              ParentColor = False
+              ParentBackground = True
+              OnValueChange = editBlendValueChange
+            end
+            object comboBlend: TcxComboBox
+              Left = 2
+              Top = 25
+              Properties.DropDownListStyle = lsFixedList
+              Properties.OnChange = comboBlendPropertiesChange
+              Style.BorderStyle = ebsOffice11
+              Style.LookAndFeel.NativeStyle = False
+              Style.LookAndFeel.SkinName = 'Darkroom'
+              Style.Shadow = False
+              StyleDisabled.LookAndFeel.NativeStyle = False
+              StyleDisabled.LookAndFeel.SkinName = 'Darkroom'
+              StyleFocused.LookAndFeel.NativeStyle = False
+              StyleFocused.LookAndFeel.SkinName = 'Darkroom'
+              StyleHot.LookAndFeel.NativeStyle = False
+              StyleHot.LookAndFeel.SkinName = 'Darkroom'
+              TabOrder = 1
+              Width = 172
+            end
+          end
+        end
+        object ieViewLayers: TImageEnVect
+          Left = 185
+          Top = 0
+          Width = 579
+          Height = 607
+          Background = clBtnFace
+          Ctl3D = False
+          ParentCtl3D = False
+          LegacyBitmap = False
+          MouseInteract = [miMoveLayers]
+          MouseWheelParams.Action = iemwZoom
+          Align = alClient
+          TabOrder = 1
+        end
+      end
     end
   end
   object pageControl: TcxPageControl
@@ -59,6 +312,10 @@ object frmLips: TfrmLips
     object cxTabSheet1: TcxTabSheet
       Caption = 'Lua script'
       ImageIndex = 0
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object panCtrls: TPanel
         Left = 0
         Top = 0
@@ -404,6 +661,10 @@ object frmLips: TfrmLips
     object cxTabSheet2: TcxTabSheet
       Caption = 'Settings'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object boxSelection: TcxGroupBox
         Left = 0
         Top = 0
@@ -612,7 +873,7 @@ object frmLips: TfrmLips
         object comboShellTiles: TcxShellComboBox
           Left = 16
           Top = 50
-          Properties.ReadOnly = True
+          Properties.ReadOnly = False
           Properties.ShowFullPath = sfpAlways
           Style.LookAndFeel.NativeStyle = False
           Style.LookAndFeel.SkinName = 'Darkroom'
@@ -659,7 +920,7 @@ object frmLips: TfrmLips
         object comboShellTextures: TcxShellComboBox
           Left = 16
           Top = 114
-          Properties.ReadOnly = True
+          Properties.ReadOnly = False
           Properties.ShowFullPath = sfpAlways
           Style.LookAndFeel.NativeStyle = False
           Style.LookAndFeel.SkinName = 'Darkroom'
@@ -673,228 +934,36 @@ object frmLips: TfrmLips
           Width = 249
         end
       end
-    end
-  end
-  object panLeft: TPanel
-    Left = 0
-    Top = 0
-    Width = 185
-    Height = 643
-    Align = alLeft
-    BevelOuter = bvNone
-    TabOrder = 2
-    object pageMVControl: TPageControl
-      Left = 0
-      Top = 0
-      Width = 185
-      Height = 643
-      ActivePage = tabModeNormal
-      Align = alClient
-      TabOrder = 0
-      object tabModeNormal: TTabSheet
-        Caption = 'tabModeNormal'
-        TabVisible = False
-        object mView: TImageEnMView
-          Left = 0
-          Top = 0
-          Width = 180
-          Height = 536
-          Background = clBtnFace
-          Ctl3D = False
-          ParentCtl3D = False
-          StoreType = ietThumb
-          ThumbWidth = 150
-          ThumbHeight = 150
-          HorizBorder = 4
-          VertBorder = 4
-          ThumbnailOptionsEx = [ietxCenterThumbnailColumn, ietxShowIconForUnknownFormat, ietxShowIconWhileLoading, ietxEnableInternalIcons, ietxStretchSmallImages]
-          OnImageSelect = mViewImageSelect
-          GridWidth = 1
-          SelectionColor = 13542013
-          ImageCacheSize = 10
-          Style = iemsFlat
-          AutoAdjustStyle = False
-          ThumbnailsBackground = clBtnFace
-          ThumbnailsBackgroundSelected = clBtnFace
-          MultiSelectionOptions = []
-          ThumbnailsBorderWidth = 0
-          DefaultTopText = iedtNone
-          DefaultInfoText = iedtNone
-          DefaultBottomText = iedtNone
-          Align = alLeft
-          ThumbnailResampleFilter = rfFastLinear
-          ThumbnailDisplayFilter = rfFastLinear
-          SelectedFontColor = clNone
-          MouseWheelParams.Action = iemwVScroll
-          MouseWheelParamsAlt.Action = iemwZoom
-          TabOrder = 0
-        end
-        object panMVaction: TPanel
-          Left = 0
-          Top = 536
-          Width = 177
-          Height = 97
-          Align = alBottom
-          BevelOuter = bvNone
-          TabOrder = 1
-          object btnClearAll: TSpeedButton
-            Left = 5
-            Top = 7
-            Width = 75
-            Height = 21
-            Caption = 'Clear all'
-            OnClick = btnClearAllClick
+      object rgpFileViewStyle: TcxRadioGroup
+        AlignWithMargins = True
+        Left = 3
+        Top = 470
+        Align = alTop
+        Caption = 'File view style'
+        ParentFont = False
+        Properties.Columns = 3
+        Properties.Items = <
+          item
+            Caption = 'File list'
           end
-          object btnClearAdditional: TSpeedButton
-            Left = 5
-            Top = 34
-            Width = 139
-            Height = 22
-            Caption = 'Clear additional images'
-            OnClick = btnClearAdditionalClick
-          end
-          object btnCopy: TSpeedButton
-            Left = 5
-            Top = 62
-            Width = 146
-            Height = 22
-            Caption = 'Copy or swap image(s)'
-            PopupMenu = popupCopy
-            OnClick = btnCopyClick
-          end
-        end
-      end
-      object tabModeLayers: TTabSheet
-        Caption = 'tabModeLayers'
-        ImageIndex = 1
-        TabVisible = False
-        object layersMView: TImageEnLayerMView
-          Left = 0
-          Top = 0
-          Width = 177
-          Height = 488
-          Background = clWindow
-          Ctl3D = False
-          ParentCtl3D = False
-          StoreType = ietThumb
-          ThumbWidth = 150
-          ThumbHeight = 150
-          HorizBorder = 8
-          VertBorder = 8
-          BottomGap = 6
-          UpperGap = 6
-          LeftGap = 6
-          TextMargin = 4
-          ThumbnailOptionsEx = [ietxCenterThumbnailColumn, ietxShowIconForUnknownFormat, ietxShowIconWhileLoading, ietxEnableInternalIcons, ietxStretchSmallImages]
-          OnImageSelect = layersMViewImageSelect
-          KeyInteract = []
-          GridWidth = 1
-          SelectionWidth = 1
-          SelectionColor = 13542013
-          ImageCacheSize = 100
-          Style = iemsFlat
-          AutoAdjustStyle = True
-          ThumbnailsBackground = clWindow
-          ThumbnailsBackgroundSelected = 16575194
-          EnableMultiSelect = True
-          MultiSelectionOptions = [iemoRegion, iemoOptimizeForDragging, iemoSelectOnRightClick, iemoHideSelectionRect]
-          ThumbnailsBorderWidth = 1
-          DefaultTopText = iedtLayerName
-          DefaultInfoText = iedtNone
-          DefaultBottomText = iedtLayerPosition
-          Align = alClient
-          ThumbnailResampleFilter = rfFastLinear
-          ThumbnailDisplayFilter = rfFastLinear
-          SelectedFontColor = clNone
-          MouseWheelParams.Action = iemwVScroll
-          MouseWheelParamsAlt.Action = iemwZoom
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 0
-          LayerOrder = ieloBackgroundFirst
-        end
-        object panBlender: TPanel
-          Left = 0
-          Top = 488
-          Width = 177
-          Height = 145
-          Align = alBottom
-          BevelOuter = bvNone
-          TabOrder = 1
-          object Label4: TLabel
-            Left = 50
-            Top = 5
-            Width = 69
-            Height = 13
-            Caption = 'Blending mode'
-          end
-          object Label5: TLabel
-            Left = 50
-            Top = 59
-            Width = 66
-            Height = 13
-            Caption = 'Transparency'
-          end
-          object btnLayersMerge: TSpeedButton
-            Left = 2
-            Top = 113
-            Width = 169
-            Height = 27
-            Caption = 'Merge layers to new image'
-            OnClick = btnLayersMergeClick
-          end
-          object editBlend: TpxSpinSlider
-            Left = 7
-            Top = 81
-            Width = 162
-            Height = 21
-            LayoutStyle = lyPixopedia
-            SliderThickness = 8
-            SliderLength = 100
-            MaxInt = 255
-            MaxFloat = 100.000000000000000000
-            FloatIncrementSmall = 0.200000000000000000
-            FloatIncrementLarge = 10.000000000000000000
-            FloatDecimals = 4
-            IntValue = 255
-            IntIncrementSmall = 1
-            IntIncrementLarge = 10
-            CheckLabel.Width = 1
-            CheckLabel.Height = 21
-            CheckLabel.CheckBoxSize = 10
-            CheckLabel.CheckBoxVisible = False
-            CheckLabel.SmoothText = False
-            CheckLabel.PenWidth = 1
-            CheckLabel.CaptionX = 3
-            CheckLabel.CaptionY = 3
-            CheckLabel.Shape = chkSemiLeft
-            CheckLabel.Caption = 'editMeshThickness'
-            PenWidth = 1
-            ColorEdit = 2105376
-            Color = clBtnFace
-            ParentColor = False
-            ParentBackground = True
-            OnValueChange = editBlendValueChange
-          end
-          object comboBlend: TcxComboBox
-            Left = 2
-            Top = 25
-            Properties.DropDownListStyle = lsFixedList
-            Properties.OnChange = comboBlendPropertiesChange
-            Style.BorderStyle = ebsOffice11
-            Style.LookAndFeel.NativeStyle = False
-            Style.LookAndFeel.SkinName = 'Darkroom'
-            Style.Shadow = False
-            StyleDisabled.LookAndFeel.NativeStyle = False
-            StyleDisabled.LookAndFeel.SkinName = 'Darkroom'
-            StyleFocused.LookAndFeel.NativeStyle = False
-            StyleFocused.LookAndFeel.SkinName = 'Darkroom'
-            StyleHot.LookAndFeel.NativeStyle = False
-            StyleHot.LookAndFeel.SkinName = 'Darkroom'
-            TabOrder = 1
-            Width = 172
-          end
-        end
+          item
+            Caption = 'Shell combo box'
+          end>
+        Properties.OnChange = rgpAuxViewStylePropertiesChange
+        ItemIndex = 0
+        Style.Font.Charset = DEFAULT_CHARSET
+        Style.Font.Color = clSilver
+        Style.Font.Height = -11
+        Style.Font.Name = 'Tahoma'
+        Style.Font.Style = []
+        Style.LookAndFeel.NativeStyle = False
+        Style.LookAndFeel.SkinName = 'Darkroom'
+        Style.IsFontAssigned = True
+        StyleDisabled.LookAndFeel.NativeStyle = False
+        StyleDisabled.LookAndFeel.SkinName = 'Darkroom'
+        TabOrder = 2
+        Height = 56
+        Width = 270
       end
     end
   end
@@ -905,13 +974,13 @@ object frmLips: TfrmLips
     Height = 31
     Align = alBottom
     BevelOuter = bvNone
-    TabOrder = 3
+    TabOrder = 2
     DesignSize = (
       1062
       31)
     object labStatus: TLabel
-      Left = 783
-      Top = 8
+      Left = 379
+      Top = 7
       Width = 53
       Height = 16
       Anchors = [akLeft, akTop, akRight]
@@ -923,19 +992,27 @@ object frmLips: TfrmLips
       Font.Style = []
       ParentFont = False
     end
-    object btnToggleMode: TSpeedButton
-      Left = 6
-      Top = 3
-      Width = 169
-      Height = 24
-      Caption = 'Toggle view mode'
+    object btnClearAll: TSpeedButton
+      Left = 11
+      Top = 5
+      Width = 75
+      Height = 21
+      Caption = 'Clear all'
+      OnClick = btnClearAllClick
+    end
+    object labInfo: TLabel
+      Left = 813
+      Top = 6
+      Width = 39
+      Height = 16
+      Anchors = [akTop, akRight]
+      Caption = 'labInfo'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
+      Font.Color = clWindowText
+      Font.Height = -13
       Font.Name = 'Tahoma'
-      Font.Style = [fsBold]
+      Font.Style = []
       ParentFont = False
-      OnClick = btnToggleModeClick
     end
   end
   object openDialog: TOpenImageEnDialog
@@ -1060,6 +1137,13 @@ object frmLips: TfrmLips
       object itemInvertSelection: TMenuItem
         Caption = 'Invert selection'
         OnClick = itemInvertSelectionClick
+      end
+      object N3: TMenuItem
+        Caption = '-'
+      end
+      object itemSelected2Buffer: TMenuItem
+        Caption = 'Copy selected area to buffer'
+        OnClick = itemSelected2BufferClick
       end
     end
   end

@@ -10,7 +10,9 @@ Luna<TLuaHostWrap>::RegType TLuaHostWrap::methods[] = {
    method(TLuaHostWrap, ShowProgress),
    method(TLuaHostWrap, SendMessage),
    method(TLuaHostWrap, RequireParams),
+   method(TLuaHostWrap, RefreshParams),
    method(TLuaHostWrap, HostDialog),
+   method(TLuaHostWrap, SendCommand),
    method(TLuaHostWrap, CreateImage),
    method(TLuaHostWrap, LoadImage),
    method(TLuaHostWrap, ExportImage),
@@ -18,6 +20,7 @@ Luna<TLuaHostWrap>::RegType TLuaHostWrap::methods[] = {
    method(TLuaHostWrap, CopyImage),
    method(TLuaHostWrap, ConvertColorSpace),
    method(TLuaHostWrap, ProcessImage),
+   method(TLuaHostWrap, Checker),
    method(TLuaHostWrap, OpenCVSet),
    method(TLuaHostWrap, OpenCVGet),
    method(TLuaHostWrap, OpenCVProcess),
@@ -73,7 +76,7 @@ if (lua_gettop(L) == 1)
    }
 else
    {
-   lua_pushstring(L, "incorrect argument to RequreParameters");
+   lua_pushstring(L, "incorrect argument to SendMesage");
    lua_error(L);
    }
 return 0;
@@ -99,17 +102,32 @@ else
 return 0;
 }
 //---------------------------------------------------------------------------
+int TLuaHostWrap::RefreshParams(lua_State *L)
+{
+if (lua_gettop(L) == 0)
+   {
+   real_object->RefreshParams();
+   }
+else
+   {
+   lua_pushstring(L, "incorrect argument to RefreshParameters");
+   lua_error(L);
+   }
+return 0;
+}
+//---------------------------------------------------------------------------
 int TLuaHostWrap::HostDialog(lua_State *L)
 {
 // only one argument must be passed
 int dialogResult;
-if (lua_gettop(L) == 1)
+if (lua_gettop(L) == 2)
    {
-   if (lua_isstring(L, 1))
+   if (lua_isstring(L, 1) && lua_isnumber(L, 2))
 	  {
 	  const char *lua_str = lua_tostring(L, 1);
-	  dialogResult = real_object->HostDialog(lua_str);
-	  lua_pop(L, 1);
+	  int lua_int = lua_tonumber(L, 2);
+	  dialogResult = real_object->HostDialog(lua_str, lua_int);
+	  lua_pop(L, 2);
 	  }
    }
 else
@@ -120,6 +138,44 @@ else
    }
 lua_pushnumber(L, dialogResult);
 return 1;
+}
+//---------------------------------------------------------------------------
+int TLuaHostWrap::SendCommand(lua_State *L)
+{
+int parNum = lua_gettop(L);
+if (parNum < 1 || parNum > 2)
+   {
+   lua_pushstring(L, "incorrect number of arguments to SendCommand");
+   lua_error(L);
+   return 0;
+   }
+const char *cmd;
+const char *parList;
+bool procOK = true;
+if (lua_isstring(L, 1))
+	cmd = lua_tostring(L, 1);
+else
+	procOK = false;
+if (parNum == 2)
+   {
+   if (lua_isstring(L, 2))
+	   parList = lua_tostring(L, 2);
+   else
+	  procOK = false;
+   }
+lua_pop(L, parNum);
+if (procOK)
+   {
+   // if ok, send command
+   procOK =  real_object->SendCommand(cmd, parList);
+   }
+if (!procOK)
+   {
+   lua_pushstring(L, "incorrect arguments to SendCommand");
+   lua_error(L);
+   return 0;
+   }
+return 0;
 }
 //---------------------------------------------------------------------------
 int TLuaHostWrap::CreateImage(lua_State *L)
@@ -362,6 +418,34 @@ if (lua_isnumber(L, 1) && lua_isnumber(L, 2) && lua_isstring(L, 3) && lua_isstri
 else
    {
    lua_pushstring(L, "incorrect arguments to ProcessImage");
+   lua_error(L);
+   return 0;
+   }
+lua_pushboolean (L, lRet ? 1 : 0);
+return 1;
+}
+//---------------------------------------------------------------------------
+// checker - various types of chcking
+int  TLuaHostWrap::Checker(lua_State *L)
+{
+bool lRet = false;
+int n = lua_gettop(L);
+if (n != 2)
+   {
+   lua_pushstring(L, "incorrect number arguments to Checker");
+   lua_error(L);
+   return 0;
+   }
+if (lua_isstring(L, 1) && lua_isstring(L, 2))
+   {
+   const char *cmd   = lua_tostring(L, 1);     // command
+   const char *param = lua_tostring(L, 2);    // parameter
+   // perform checking
+   lRet = real_object->Checker(cmd, param);
+   }
+else
+   {
+   lua_pushstring(L, "incorrect arguments to Checker");
    lua_error(L);
    return 0;
    }

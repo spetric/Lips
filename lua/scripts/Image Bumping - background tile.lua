@@ -11,6 +11,10 @@ function main()
       return
   end    
   math.randomseed( os.time())
+  if (tile ==  "") then
+     lips_SendMessage("Tile filename empty.");
+     return
+  end    
   gsMask = lips_LoadImage(tile, "grayscale") 
   for y = Roi.Top, Roi.Bottom do
     for x = Roi.Left, Roi.Right do

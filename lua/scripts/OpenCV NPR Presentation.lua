@@ -4,6 +4,10 @@ function RequireParams()
    lips_RequireParams("opencv_filter = list([Detail enhance, Edge preserving Filter, PencilSketch, Stylization, Oil painting] 0);")
 end   
 function main()
+  if (not OcvEnabled) then
+     lips_SendMessage(errOcvDisabled)  
+     return     
+  end     
   if (TargetImage.Plane == nil) then
       lips_SendMessage(errTargetEmpty)
       return

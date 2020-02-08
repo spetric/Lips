@@ -96,7 +96,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>D:\OpenCV\Win32\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_core400d.lib;opencv_highgui400d.lib;opencv_imgproc400d.lib;opencv_features2d400d.lib;opencv_calib3d400d.lib;opencv_flann400d.lib;opencv_dnn400d.lib;opencv_face400d.lib;opencv_objdetect400d.lib;opencv_photo400d.lib;opencv_fuzzy400d.lib;opencv_xphoto400d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_core400d.lib;opencv_highgui400d.lib;opencv_imgproc400d.lib;opencv_features2d400d.lib;opencv_calib3d400d.lib;opencv_flann400d.lib;opencv_dnn400d.lib;opencv_face400d.lib;opencv_objdetect400d.lib;opencv_photo400d.lib;opencv_fuzzy400d.lib;opencv_xphoto400d.lib;opencv_xfeatures2d400d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

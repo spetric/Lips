@@ -7,7 +7,10 @@
 TList* TImageCommon::FInternalImageList = 0;
 TLuaImageByte3 *TImageCommon::SourceImage = 0;
 TLuaImageByte3 *TImageCommon::TargetImage = 0;
-TLuaImageByte1 *TImageCommon::MaskImage = 0;
+TLuaImageByte3 *TImageCommon::CustomImage = 0;
+TLuaImageByte1 *TImageCommon::SourceMask = 0;
+TLuaImageByte1 *TImageCommon::TargetMask = 0;
+TLuaImageByte1 *TImageCommon::CustomMask = 0;
 TLuaRoi *TImageCommon::SourceRoi = 0;
 TLuaRoi *TImageCommon::TargetRoi = 0;
 int TImageCommon::_chor = 2;
@@ -62,8 +65,23 @@ if (id < 0)
 	  }
    else if (id == -3)
 	  {
-	  img = (TLuaImageVoid*)MaskImage;
-      type = TYPE_B1;
+	  img = (TLuaImageVoid*)SourceMask;
+	  type = TYPE_B1;
+	  }
+   else if (id == -4)
+	  {
+	  img = (TLuaImageVoid*)TargetMask;
+	  type = TYPE_B1;
+	  }
+   else if (id == -5)
+	  {
+	  img = (TLuaImageVoid*)CustomImage;
+	  type = TYPE_B3;
+	  }
+   else if (id == -6)
+	  {
+	  img = (TLuaImageVoid*)CustomMask;
+	  type = TYPE_B1;
 	  }
    else
 	  return 0;
@@ -121,20 +139,29 @@ int width = img->width;
 int height = img->height;
 if (!FInternalImageList)
    FInternalImageList = new TList();
-TInternalImage *internalImage = new TInternalImage(iType, width, height);
+TInternalImage *internalImage = new TInternalImage(iType, width, height, (img->alphaStride > 0) );
 if (internalImage)
    FInternalImageList->Add(internalImage);
 else
    return 0;
 // copy data
 Byte *isrcBuff = (Byte*)(img->imageBuff);
-Byte *asrcBuff = (Byte*)(img->alphaBuff);
 for (int i = 0; i < height; i++)
 	{
-	// we don't need to flip it, because it's probably processed as flipped
+	// we don't need to flip it, because it's probably processed and flipped
 	memcpy((void*)internalImage->luaImage->plane[i], (void*)isrcBuff, img->imageStride);
 	isrcBuff = isrcBuff + img->imageStride;
 	}
+// alpha channel
+if (img->alphaStride > 0)
+   {
+   Byte *asrcBuff = (Byte*)(img->alphaBuff);
+   for (int i = 0; i < height; i++)
+		{
+		memcpy((void*)internalImage->luaImage->alpha[i], (void*)asrcBuff, img->alphaStride);
+		asrcBuff = asrcBuff + img->alphaStride;
+		}
+   }
 internalImage->luaImage->id = FInternalImageList->Count;
 return internalImage->luaImage;
 }
@@ -149,9 +176,9 @@ if (FInternalImageList)
 	   delete internalImage;
        internalImage = 0;
 	   }
+   delete FInternalImageList;
+   FInternalImageList = 0;
    }
-delete FInternalImageList;
-FInternalImageList = 0;
 }
 //---------------------------------------------------------------------------
 void TImageCommon::CopyImage(TLuaImageByte1 *inp, TLuaImageByte1 *out, TLuaRoi *srcRoi, TLuaRoi *dstRoi)

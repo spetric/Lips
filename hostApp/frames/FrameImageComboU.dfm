@@ -14,7 +14,6 @@ object FrameImageCombo: TFrameImageCombo
     StyleDisabled.LookAndFeel.NativeStyle = False
     StyleDisabled.LookAndFeel.SkinName = 'Darkroom'
     TabOrder = 0
-    ExplicitWidth = 307
     Height = 60
     Width = 281
     object image: TAdvSmoothImageListBoxPicker

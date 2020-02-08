@@ -5,7 +5,7 @@
 #define spHostApp	// yes, we are the host application
 #endif
 #include "lipsEngineDll.h"
-#include "commonHelper.h"
+#include "lipsHelper.h"
 #include "FrameImageU.h"
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
@@ -66,7 +66,7 @@ class TfrmLips : public TForm
 {
 __published:	// IDE-managed Components
 	TPanel *panMain;
-	TImageEnVect *ieView;
+	TImageEnVect *ieViewSingle;
 	TPanel *panCtrls;
 	TPanel *panTop;
 	TPanel *panRightBot;
@@ -111,12 +111,9 @@ __published:	// IDE-managed Components
 	TMenuItem *itemOpenS;
 	TMenuItem *itemOpenT;
 	TImageEnMView *mView;
-	TPanel *panLeft;
+	TPanel *panLayers;
 	TPanel *panStatus;
 	TLabel *labStatus;
-	TPageControl *pageMVControl;
-	TTabSheet *tabModeNormal;
-	TTabSheet *tabModeLayers;
 	TImageEnLayerMView *layersMView;
 	TPanel *panBlender;
 	TpxSpinSlider *editBlend;
@@ -134,11 +131,19 @@ __published:	// IDE-managed Components
 	TMenuItem *itemSwap2;
 	TMenuItem *itemCopy4;
 	TPanel *panMVaction;
-	TSpeedButton *btnClearAll;
 	TSpeedButton *btnClearAdditional;
 	TSpeedButton *btnCopy;
 	TSpeedButton *btnLayersMerge;
-	TSpeedButton *btnToggleMode;
+	TcxRadioGroup *rgpFileViewStyle;
+	TPanel *panSingle;
+	TImageEnVect *ieViewLayers;
+	TcxPageControl *pageMVControl;
+	TcxTabSheet *tabNormal;
+	TcxTabSheet *tabLayers;
+	TSpeedButton *btnClearAll;
+	TLabel *labInfo;
+	TMenuItem *N3;
+	TMenuItem *itemSelected2Buffer;
 	void __fastcall btnExecuteClick(TObject *Sender);
 	void __fastcall listScriptsItemSelected(TObject *Sender, int itemindex);
 	void __fastcall FormShow(TObject *Sender);
@@ -155,28 +160,48 @@ __published:	// IDE-managed Components
 	void __fastcall btnClearAllClick(TObject *Sender);
 	void __fastcall btnClearAdditionalClick(TObject *Sender);
 	void __fastcall btnCopyClick(TObject *Sender);
-	void __fastcall btnToggleModeClick(TObject *Sender);
 	void __fastcall layersMViewImageSelect(TObject *Sender, int idx);
 	void __fastcall editBlendValueChange(TObject *Sender);
 	void __fastcall comboBlendPropertiesChange(TObject *Sender);
 	void __fastcall itemCopyClick(TObject *Sender);
 	void __fastcall btnLayersMergeClick(TObject *Sender);
+	void __fastcall ieViewSingleMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
+          int X, int Y);
+	void __fastcall ieViewSingleMouseMove(TObject *Sender, TShiftState Shift, int X,
+          int Y);
+	void __fastcall ieViewSingleMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
+          int X, int Y);
+	void __fastcall itemSelected2BufferClick(TObject *Sender);
 private:	// User declarations
-    TList *FImageList;
+	struct SelStruct
+		{
+		TIEBitmap *Image;
+		TIEBitmap *Mask;
+        TRect Roi;
+		SelStruct() {Image = 0; Mask = 0;}
+		};
+	TList *FImageList;
 	TIEBitmap *FPushImage;
 	TStringList *FLuaScripts;
 	TRect *FSelRect;
-	TIEBitmap *FMapWork;
+	TIEBitmap *FMapWork, *FSourceMask, *FTargetMask;
+    SelStruct FSelection;
+	bool FExportedAsTarget;
 	bool FScriptLoaded;
+	bool FMouseEvent2Lua;
+    bool FSelectionRoiEnabled;
 	void __fastcall deleteImages(int upto = 0);
     void __fastcall checkImageFrames(void);
 	void __fastcall loadScriptList(UnicodeString path);
 	void __fastcall createLipSurface(void);
 	void __fastcall luaParamBuilder(void);
+	void __fastcall luaParamRefresh(void);
 	void __fastcall luaImportImage(TExportImage *expImage, bool asIs);
-	void __fastcall prepareTableImage(TFrameImage *fi, TCommonHelper::LuaTKRV *obj);
-	void __fastcall pushTableImage(TImageEnView *fiView, TCommonHelper::LuaTKRV *obj);
-    String __fastcall setParamValues(void);
+	void __fastcall prepareTableImage(TFrameImage *fi, TLipsHelper::LuaTKRV *obj);
+	void __fastcall pushTableImage(TImageEnView *fiView, TLipsHelper::LuaTKRV *obj);
+	String __fastcall setParamValues(void);
+	bool __fastcall luaCommand(const char *cmd, const char* parList);
+    void __fastcall resetMouseEvents(void);
 public:		// User declarations
 	__fastcall TfrmLips(TComponent* Owner);
 	__fastcall ~TfrmLips();

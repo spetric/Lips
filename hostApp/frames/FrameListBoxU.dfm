@@ -14,7 +14,6 @@ object FrameListBox: TFrameListBox
     StyleDisabled.LookAndFeel.NativeStyle = False
     StyleDisabled.LookAndFeel.SkinName = 'Darkroom'
     TabOrder = 0
-    ExplicitHeight = 50
     Height = 192
     Width = 281
     object list: TListBox
@@ -26,7 +25,6 @@ object FrameListBox: TFrameListBox
       Color = clBtnFace
       ItemHeight = 13
       TabOrder = 0
-      ExplicitHeight = 140
     end
   end
 end

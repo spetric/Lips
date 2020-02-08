@@ -33,9 +33,13 @@ The first line in each Lua script intended for use with Lips engine must begin w
 When script is executed, Lua engine creates following global variables:
 
 - SourceImage (shared image from Host application)
+- SourceMask (shared grayscale image from Host application) 
 - TargetImage (shared image from Host application)
+- TargetMask (shared grayscale image from Host application)
 - SourceRoi (source image roi, initially set to complete image)
 - TargetRoi (target image roi, initially set to complete image)
+- CustomImage (shared image from Host application)
+- CustomMask (shared grayscale image from Host application)
 - ExePath (path to host application directory)
 - ExeWin32 (boolean - true = 32 bit dll, false = 64 bit dll)
 

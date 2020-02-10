@@ -77,6 +77,7 @@ Here are few screenshots of host application after executing various Lua scripts
     <img src='screens/screen2.jpg' width='200'>
     <img src='screens/screen3.jpg' width='200'>
     <img src='screens/screen4.jpg' width='200'>
+    <img src='screens/screen5.jpg' width='200'>    
 </p>
 
 ### License

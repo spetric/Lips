@@ -71,7 +71,7 @@ These archives must be unpacked in data/(face/stylemodels) folders under executa
 
 ### Screenshots
 Here are few screenshots of host application after executing various Lua scripts:
-<p align='center'>
+<p align='left'>
     </br>
     <img src='screens/screen1.jpg' width='200'>
     <img src='screens/screen2.jpg' width='200'>

@@ -30,7 +30,7 @@ Host (demo) application is written in Embarcadero C++ and it contains some comme
 ### Lua scripts
 The first line in each Lua script intended for use with Lips engine must begin with `require("_prolog")` statement. The exception of this rule is if you want to debug your Lua script with let's say ZeroBrane Studio (https://studio.zerobrane.com). In this case, the first statement must be `require("_debug")`. To call OpenCV APIs (ocvWrapper.dll), you must also include opencv script `require("_opencv")`.
 
-When script is executed, Lua engine creates following global variables:
+When script is loaded, Lua engine creates following global variables:
 
 - SourceImage (shared image from Host application)
 - SourceMask (shared grayscale image from Host application) 

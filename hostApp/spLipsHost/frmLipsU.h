@@ -144,6 +144,7 @@ __published:	// IDE-managed Components
 	TLabel *labInfo;
 	TMenuItem *N3;
 	TMenuItem *itemSelected2Buffer;
+	TpxCheckLabel *chkLayersSB;
 	void __fastcall btnExecuteClick(TObject *Sender);
 	void __fastcall listScriptsItemSelected(TObject *Sender, int itemindex);
 	void __fastcall FormShow(TObject *Sender);
@@ -172,6 +173,7 @@ __published:	// IDE-managed Components
 	void __fastcall ieViewSingleMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift,
           int X, int Y);
 	void __fastcall itemSelected2BufferClick(TObject *Sender);
+	void __fastcall chkLayersSBValueChange(TObject *Sender);
 private:	// User declarations
 	struct SelStruct
 		{
@@ -191,17 +193,21 @@ private:	// User declarations
 	bool FMouseEvent2Lua;
     bool FSelectionRoiEnabled;
 	void __fastcall deleteImages(int upto = 0);
-    void __fastcall checkImageFrames(void);
+	void __fastcall setIcmv(int idx, TImageContainer *ic);
+    TIEBitmap* __fastcall getMapFromTag(int tag);
+    //
+	void __fastcall checkImageFrames(void);
 	void __fastcall loadScriptList(UnicodeString path);
 	void __fastcall createLipSurface(void);
 	void __fastcall luaParamBuilder(void);
 	void __fastcall luaParamRefresh(void);
-	void __fastcall luaImportImage(TExportImage *expImage, bool asIs);
+	void __fastcall luaImportImage(TExportImage *expImage, bool asIs, bool show);
+	void __fastcall luaImportRawData(void *data, int type);
 	void __fastcall prepareTableImage(TFrameImage *fi, TLipsHelper::LuaTKRV *obj);
 	void __fastcall pushTableImage(TImageEnView *fiView, TLipsHelper::LuaTKRV *obj);
 	String __fastcall setParamValues(void);
 	bool __fastcall luaCommand(const char *cmd, const char* parList);
-    void __fastcall resetMouseEvents(void);
+	void __fastcall resetMouseEvents(void);
 public:		// User declarations
 	__fastcall TfrmLips(TComponent* Owner);
 	__fastcall ~TfrmLips();

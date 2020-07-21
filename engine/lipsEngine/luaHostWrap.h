@@ -34,6 +34,7 @@ class TLuaHostWrap
 	int LoadImage(lua_State *L);
 	int ExportImage(lua_State *L);
 	int GetImage(lua_State *L);
+	int ReleaseImage(lua_State *L);
     int CopyImage(lua_State *L);
 	int DeleteImage(lua_State *L);
 	int ConvertColorSpace(lua_State *L);
@@ -42,6 +43,7 @@ class TLuaHostWrap
 	int OpenCVSet(lua_State *L);
     int OpenCVGet(lua_State *L);
 	int OpenCVProcess(lua_State *L);
+    int ExportRawData(lua_State *L);
   private:
 	// The pointer to the "real object" of type TLueConsole
     TLuaHost* real_object;

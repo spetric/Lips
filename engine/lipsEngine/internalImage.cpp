@@ -25,6 +25,8 @@ if (type == TYPE_B3)
 	  alpha = new spImage<ptGray>(width, height, scanlineAlignment, contiguous, orient);
 	  lImage->alpha = (TTypeByte1**) alpha->Data();
 	  lImage->alphaStride = alpha->Stride();
+	  // set to white
+      alpha->Fill(0xff);
 	  }
    else
 	  {
@@ -36,8 +38,8 @@ if (type == TYPE_B3)
 else if (type == TYPE_B1)
    {
    TLuaImageByte1 *lImage = new TLuaImageByte1;
-   lImage->alpha = 0;
-   lImage->alphaStride = 0;
+   //lImage->alpha = 0;
+   //lImage->alphaStride = 0;
    spImage<ptGray> *img = new spImage<ptGray>(width, height, scanlineAlignment, contiguous, orient);
    image = static_cast<void*>(img);
    lImage->channels = 1;
@@ -45,6 +47,19 @@ else if (type == TYPE_B1)
    lImage->align  = img->Alignment();
    lImage->orientation = (int)orient;
    lImage->plane = (TTypeByte1**)img->Data();
+   if (addAlpha)
+	  {
+	  alpha = new spImage<ptGray>(width, height, scanlineAlignment, contiguous, orient);
+	  lImage->alpha = (TTypeByte1**) alpha->Data();
+	  lImage->alphaStride = alpha->Stride();
+	  // set to white
+	  alpha->Fill(0xff);
+	  }
+   else
+	  {
+	  lImage->alpha = 0;
+	  lImage->alphaStride = 0;
+	  }
    luaImage = (TLuaImageVoid*)(lImage);
    }
 else if (type == TYPE_F3)
@@ -60,6 +75,7 @@ else if (type == TYPE_F3)
    lImage->orientation = (int)orient;
    lImage->plane = (TTypeFloat3**)img->Data();
    luaImage = (TLuaImageVoid*)(lImage);
+   // I don't need alpha chan for this type...at least for now
    }
 luaImage->width = width;
 luaImage->height = height;

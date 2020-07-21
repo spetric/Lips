@@ -2,9 +2,16 @@
 #include <vcl.h>
 #pragma hdrstop
 #include "lipsHelper.h"
+#include "FrameSliderU.h"
+#include "FrameCheckBoxU.h"
+#include "FrameComboBoxU.h"
+#include "FrameImageSliderU.h"
+#include "FrameImageComboU.h"
+#include "FrameListBoxU.h"
+#include "FrameShellComboBoxU.h"
 #include <StrUtils.hpp>
 #ifndef spHostApp	// check
-#define spHostApp	// yes, we are the host application
+	#define spHostApp	// yes, we are the host application
 #endif
 #include "lipsEngineDll.h"
 #pragma package(smart_init)
@@ -14,6 +21,7 @@ TList *TLipsHelper::luaInputParams = 0;
 TFrameBuilder TLipsHelper::luaParamBuilder = 0;
 TFrameBuilder TLipsHelper::luaParamRefresh = 0;
 TImportImage TLipsHelper::luaImportImage = 0;
+TImportRawData TLipsHelper::luaImportRawData = 0;
 bool TLipsHelper::luaParamsOK = true;
 TIEBitmap *TLipsHelper::luaPushImage = 0;
 TLuaCommand TLipsHelper::luaHostCommand = 0;
@@ -208,12 +216,12 @@ lipsPushImage(sType.c_str(), luaPushImage->ScanLine[h -1], 0, w, h, 4);
 return true;
 }
 //---------------------------------------------------------------------------
-bool __stdcall TLipsHelper::LuaExportImage(TExportImage *expImage, bool asIs)
+bool __stdcall TLipsHelper::LuaExportImage(TExportImage *expImage, bool asIs, bool show)
 {
 if (expImage->channels != 3)
    return false;
 else
-   luaImportImage(expImage, asIs);
+   luaImportImage(expImage, asIs, show);
 return true;
 }
 //---------------------------------------------------------------------------
@@ -245,6 +253,15 @@ if (luaHostCommand)
    return luaHostCommand(cmd, parList);
 else
    return false;
+}
+//---------------------------------------------------------------------------
+bool __stdcall TLipsHelper::LuaExportRawData(void *data, int type)
+{
+if (data)
+   luaImportRawData(data, type);
+else
+   return false;
+return true;
 }
 //---------------------------------------------------------------------------
 String TLipsHelper::StringBetween(String input, String left, String right, String &remainder)
@@ -303,5 +320,6 @@ for (int i = 0; i < h; i++)
 	  }
    }
 }
+
 
 

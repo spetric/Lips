@@ -53,6 +53,7 @@ extern "C" OCV_API int ocvWarpPerspective(const SocvTuple *wparams, bool exportI
 extern "C" OCV_API int ocvWarpAffine(const SocvTuple *wparams, bool exportImage = false, int flag = OCW_INTER_LINEAR, TBorderType borderType = OCW_BORDER_CONSTANT);
 extern "C" OCV_API int ocvFlip(int flipCode);
 extern "C" OCV_API int ocvFlipInplace(int flipCode, TImgSelect iSel);
+extern "C" OCV_API int ocvResize(int width, int height, int flag);
 // image npr
 extern "C" OCV_API int ocvDetailEnhance(float sigma_s = 10,	float sigma_r = 0.15f);
 extern "C" OCV_API int ocvEdgePreservingFilter(int flags = 1, float sigma_s = 60, float sigma_r = 0.4f);
@@ -75,13 +76,24 @@ extern "C" OCV_API int ocvGaborFilter(unsigned int kernelSize = 31, double theta
 extern "C" OCV_API int ocvGaborius(unsigned int step = 16, unsigned int kernelSize = 31, double sigma = 4, double lambda = 10, double gamma = 0.5, double psi = 0, double ksFactor = 1.5);
 extern "C" OCV_API int ocvTrigonometrius(int fType = OCW_KF_COS, unsigned int step = 16, unsigned int kernelSize = 31, double hSigma = 0.5, double freq = 3, double ksFactor = 1.5, int margin = -1, double vSigma = 0);
 // feature detection
-extern "C" OCV_API int ocvCalcFeatures2D(TFeature2DType type = OCW_FD_AKAZE);
+extern "C" OCV_API int ocvCalcFeatures2D(TFeature2DType type = OCW_FD_AKAZE,  TFeature2DChoice choice = OCW_FCH_SRCTGT, int maxSrcKeys = 0, int maxTgtKeys = 0);
 extern "C" OCV_API int ocvCalcMatches(TMatchType type = OCW_MT_BRUTE_HAMMING, float matchParam = 0.15f, bool exportImage = true);
 extern "C" OCV_API int ocvCalcHomography(unsigned int MinMatches = 6, THomographyType type = OCW_HOMO_RANSAC, bool exportImage = true, bool addAlpha = true, bool warp2SS = false);
+extern "C" OCV_API int ocvReduceFeatures2D(TFeature2DReduction redType = OCW_HOSR_OUTLIERS, bool exportMatchImage = false);
 extern "C" OCV_API int ocvRecalcHomography(void);
-extern "C" OCV_API int ocvGetHomorgaphyData(int &inliers, int &outliers);
+extern "C" OCV_API int ocvGetHomographyData(SocvHomography &homoData);
+extern "C" OCV_API int ocvClearFeatures2D(void);
 // extra features
 extern "C" OCV_API int ocvInpaint(TInpaintType type = OCW_INPAINT_NS, double radius = 3.0);
 // test
 extern "C" OCV_API int ocvColorize(int dkId);
 extern "C" OCV_API int ocvSeamlessClone(int centerX, int centerY, TCloneType type = OCW_CLONE_MERGE);
+extern "C" OCV_API int ocvDnnSuperResolution(const wchar_t *model, TDnnSuperResType type,  int scale);
+extern "C" OCV_API int ocvColorTransfer(bool exportImage = false);
+extern "C" OCV_API int ocvStaticSaliency(TSaliencyType type = OCW_SALIENCY_FINE_GRAINED);
+// flood fill
+extern "C" OCV_API int ocvFloodFillSimple(SocvPoint seed, int tolLo, int tolHi, int connectivity, int fillMode, unsigned char *pixBGR = 0);
+extern "C" OCV_API int ocvFloodFillMasked(SocvPoint seed, int tolLo, int tolHi, int connectivity, int fillMode, unsigned char *pixBGR = 0, int maskVal = 255);
+// mixed non-ocv related (MAT used only as image container)
+extern "C" OCV_API int ocvImageDiff(int patchRadius = 3, int radius = 3, int iterations = 1, int err_tol = 3, int output_threshold = 60, int out_stype = 1); 
+// TODO: patchmath inpaint

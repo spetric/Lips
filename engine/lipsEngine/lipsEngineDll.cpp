@@ -165,6 +165,12 @@ DLLEXPORT void  __stdcall lipsSetCbHostDialog(TLuaHostDialog hostdialogCb)
 gEW.HostDialogCb = hostdialogCb;
 }
 //---------------------------------------------------------------------------
+// set export contour call back
+DLLEXPORT void  __stdcall lipsSetCbExportRawData(TLuaExportRawData exportrawdataCb)
+{
+gEW.ExportRawDataCb = exportrawdataCb;
+}
+//---------------------------------------------------------------------------
 // set command  call back
 DLLEXPORT void  __stdcall lipsSetCbCommand(TLuaDoubleString commandCb)
 {

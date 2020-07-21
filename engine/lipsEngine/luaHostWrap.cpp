@@ -1,6 +1,7 @@
 //---------------------------------------------------------------------------
 #pragma hdrstop
 #include "luaHostWrap.h"
+#include <StrUtils.hpp>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 // Define the methods we will expose to Lua
@@ -17,6 +18,7 @@ Luna<TLuaHostWrap>::RegType TLuaHostWrap::methods[] = {
    method(TLuaHostWrap, LoadImage),
    method(TLuaHostWrap, ExportImage),
    method(TLuaHostWrap, GetImage),
+   method(TLuaHostWrap, ReleaseImage),
    method(TLuaHostWrap, CopyImage),
    method(TLuaHostWrap, ConvertColorSpace),
    method(TLuaHostWrap, ProcessImage),
@@ -24,6 +26,7 @@ Luna<TLuaHostWrap>::RegType TLuaHostWrap::methods[] = {
    method(TLuaHostWrap, OpenCVSet),
    method(TLuaHostWrap, OpenCVGet),
    method(TLuaHostWrap, OpenCVProcess),
+   method(TLuaHostWrap, ExportRawData),
    {0,0}
 };
 //---------------------------------------------------------------------------
@@ -182,8 +185,10 @@ int TLuaHostWrap::CreateImage(lua_State *L)
 {
 const char *type;
 int width, height;
+bool addAlpha = false;
 bool err = false;
-if (lua_gettop(L) == 3)
+int n = lua_gettop(L);
+if (n >= 3)
 	{
 	if (lua_isstring(L, 1))
 		type = lua_tostring(L, 1);
@@ -197,11 +202,18 @@ if (lua_gettop(L) == 3)
 		height = lua_tointeger(L, 3);
 	else
 		err = true;
-	lua_pop(L, 3);
+	if (n > 3)
+	   {
+	   if (lua_isboolean(L, 4))
+		  addAlpha = lua_toboolean(L, 4);
+	   else
+		  err = true;
+	   }
+	lua_pop(L, n);
 	if (!err)
 	   {
 	   // if ok, push image onto stack
-	   TLuaImageVoid *img =  real_object->CreateImage(type, width, height);
+	   TLuaImageVoid *img =  real_object->CreateImage(type, width, height, addAlpha);
 	   if (img)
 		   lua_pushlightuserdata(L, LPVOID (img));
 	   else
@@ -265,7 +277,7 @@ bool lRet = false;
 int n = lua_gettop(L);
 if (n < 2)
    {
-   lua_pushstring(L, "incorrect number arguments to ExportImage");
+   lua_pushstring(L, "incorrect number of arguments to ExportImage");
    lua_error(L);
    return 0;
    }
@@ -274,11 +286,43 @@ if (lua_isnumber(L, 1) && lua_isstring(L, 2))
    int expId = lua_tointeger(L, 1);    // export image id
    const char *lua_str = lua_tostring(L, 2);
    String cType = String(lua_str);
-   lRet = real_object->ExportImage(expId, lua_str);
+   bool show = true;
+   if (n == 3)
+	  {
+	  if (lua_isboolean(L, 3))
+		 show = lua_toboolean(L, 3);
+	  }
+   lRet = real_object->ExportImage(expId, lua_str, show);
    }
 else
    {
    lua_pushstring(L, "incorrect arguments to ExportImage");
+   lua_error(L);
+   return 0;
+   }
+lua_pop(L, n);
+lua_pushboolean (L, lRet ? 1 : 0);
+return 1;
+}
+//---------------------------------------------------------------------------
+int TLuaHostWrap::ExportRawData(lua_State *L)
+{
+bool lRet = false;
+int n = lua_gettop(L);
+if (n < 1)
+   {
+   lua_pushstring(L, "incorrect number of arguments to ExportRawData");
+   lua_error(L);
+   return 0;
+   }
+if (lua_isnumber(L, 1))
+   {
+   int type = lua_tointeger(L, 1);     // export data type
+   lRet = real_object->ExportRawData(type);
+   }
+else
+   {
+   lua_pushstring(L, "incorrect argument to ExportRawData");
    lua_error(L);
    return 0;
    }
@@ -318,6 +362,32 @@ else
 return 2;
 }
 //---------------------------------------------------------------------------
+int TLuaHostWrap::ReleaseImage(lua_State *L)
+{
+bool lRet = false;
+int n = lua_gettop(L);
+if (n < 1)
+   {
+   lua_pushstring(L, "incorrect number arguments to ReleaseImage");
+   lua_error(L);
+   return 0;
+   }
+if (lua_isnumber(L, 1))
+   {
+   int id = lua_tointeger(L, 1);    		// get image id
+   lRet = real_object->ReleaseImage(id);    // release image by id
+   }
+else
+   {
+   lua_pushstring(L, "incorrect arguments to ReleaseImage");
+   lua_error(L);
+   return 0;
+   }
+lua_pop(L, n);
+lua_pushboolean (L, lRet ? 1 : 0);
+return 1;
+}
+//---------------------------------------------------------------------------
 // copy image data
 int  TLuaHostWrap::CopyImage(lua_State *L)
 {
@@ -348,6 +418,7 @@ else
    lua_error(L);
    return 0;
    }
+lua_pop(L, n);
 lua_pushboolean (L, lRet ? 1 : 0);
 return 1;
 }
@@ -379,6 +450,10 @@ if (lua_isnumber(L, 1) && lua_isnumber(L, 2) && lua_isstring(L, 3))
 	  lRet = real_object->Conv_lab2rgb(inpId, outId);
    else if (cType == "rgb2grayscale")
 	  lRet = real_object->Conv_rgb2gray(inpId, outId);
+   else if (cType == "grayscale2rgb")
+	  lRet = real_object->Conv_gray2rgb(inpId, outId, false);
+   else if (cType == "alpha2rgb")
+	  lRet = real_object->Conv_gray2rgb(inpId, outId, true);
    else
 	  lRet = false;
    }
@@ -392,35 +467,55 @@ lua_pushboolean (L, lRet ? 1 : 0);
 return 1;
 }
 //---------------------------------------------------------------------------
-// image preocessing - internal
+// image preocessing - internal/external
 int  TLuaHostWrap::ProcessImage(lua_State *L)
 {
 bool lRet = false;
-if (lua_gettop(L) != 4)
+if (lua_gettop(L) != 2)
    {
    lua_pushstring(L, "incorrect number of arguments to ProcessImage");
    lua_error(L);
    return 0;
    }
-if (lua_isnumber(L, 1) && lua_isnumber(L, 2) && lua_isstring(L, 3) && lua_isstring(L, 4))
-   {
-   int inpId = lua_tointeger(L, 1);    // source image id
-   int outId = lua_tointeger(L, 2);    // target image id
-   const char *lua_proc   = lua_tostring(L, 3);
-   const char *lua_params = lua_tostring(L, 4);
-   lua_pop(L, 4);
-   String procType = String(lua_proc);
-   if (procType == "blur")
-	  lRet = real_object->Blur(inpId, outId, lua_params);
-   else
-	  lRet = false;
-   }
-else
+if (!(lua_isstring(L, 1) && lua_isstring(L, 2)))
    {
    lua_pushstring(L, "incorrect arguments to ProcessImage");
    lua_error(L);
    return 0;
    }
+const char *lua_proc   = lua_tostring(L, 1);
+const char *lua_params = lua_tostring(L, 2);
+String strProc = String(lua_proc).Trim().LowerCase();
+String strParams = String(lua_params).Trim().LowerCase();
+lua_pop(L, 2);
+//fmt.DecimalSeparator = '.';
+// parse parameters
+TStringDynArray tokens = SplitString(strParams, ",");
+// internal
+if (strProc == "blur")     // grayscale only
+   {
+   int inpId = StrToInt(tokens[0]);    // source image id
+   int outId = StrToInt(tokens[1]);    // target image id
+   int radius = StrToInt(tokens[2]);
+   lRet = real_object->Blur(inpId, outId, radius);
+   }
+else if (strProc == "blend")
+   {
+   int inpId = StrToInt(tokens[0]);    // source image id
+   int maskId = StrToInt(tokens[1]);   // mask image id
+   int outId = StrToInt(tokens[2]);    // target image id
+   bool alpha = StrToBool(tokens[3]);   // blend with alpha channel
+   lRet = real_object->Blend(inpId, maskId, outId, alpha);
+   }
+// extgernal
+else if(strProc == "downsample")
+   {
+   int inpId = StrToInt(tokens[0]);    // source image id
+   int outId = StrToInt(tokens[1]);    // target image id
+   lRet = real_object->DownSample(inpId, outId);
+   }
+else
+  lRet = false;
 lua_pushboolean (L, lRet ? 1 : 0);
 return 1;
 }
@@ -492,22 +587,35 @@ return 1;
 int  TLuaHostWrap::OpenCVGet(lua_State *L)
 {
 int nParams = lua_gettop(L);
-if (nParams < 1)
+if (nParams < 1 || nParams > 2)
    {
    lua_pushstring(L, "incorrect number of arguments to OpenCV get");
    lua_error(L);
    return 0;
    }
-if (!lua_isstring(L, 1))
+bool canProceed = true;
+for (int i = 1; i <= nParams; i++)
+	canProceed = canProceed && lua_isstring(L, i);
+if (!canProceed)
    {
    lua_pushstring(L, "incorrect arguments to OpenCV get");
    lua_error(L);
    return 0;
    }
-const char *lua_proc   = lua_tostring(L, 1);
-int nRet = real_object->OcvGet(lua_proc);
-lua_pop(L, nParams);
-lua_pushnumber(L, nRet);
+const char *lua_proc = lua_tostring(L, 1);
+if (nParams == 1)
+   {
+   int nRet = real_object->OcvGetInt(lua_proc);
+   lua_pop(L, nParams);
+   lua_pushnumber(L, nRet);
+   }
+else
+   {
+   const char *lua_params = lua_tostring(L, 2);
+   void *pRet = real_object->OcvGetPtr(lua_proc, lua_params);
+   lua_pop(L, nParams);
+   lua_pushlightuserdata(L, LPVOID (pRet));
+   }
 return 1;
 }
 //---------------------------------------------------------------------------
@@ -550,9 +658,17 @@ if (canProceed)
 	  }
    if (rc != 0)
 	  {
-	  lua_pushstring(L, errMsg);
-	  lua_error(L);
-	  return 0;
+	  if (rc < 0)
+		 {
+		 lua_pushstring(L, errMsg);
+		 lua_error(L);
+		 return 0;
+		 }
+	  else
+		 {
+		 lua_pushnumber(L, rc);
+		 return 1;
+         }
 	  }
    }
 else
@@ -561,7 +677,8 @@ else
    lua_error(L);
    return 0;
    }
-lua_pushboolean (L, 1);
+//lua_pushboolean (L, 1);
+lua_pushnumber (L, 0);
 return 1;
 }
 //---------------------------------------------------------------------------

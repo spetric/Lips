@@ -16,6 +16,8 @@ TLuaRoi *TImageCommon::TargetRoi = 0;
 int TImageCommon::_chor = 2;
 int TImageCommon::_chog = 1;
 int TImageCommon::_chob = 0;
+const unsigned long spe_SP_NORM           = 4194304;     // 2 ^ 22
+const unsigned long spe_SP_SHIFT          = 22;
 //---------------------------------------------------------------------------
 // private block
 //---------------------------------------------------------------------------
@@ -106,7 +108,7 @@ return img;
 }
 //---------------------------------------------------------------------------
 // create new internal image
-TLuaImageVoid* TImageCommon::CreateImage(const char *type, int width, int height, unsigned int scanlineAlignement)
+TLuaImageVoid* TImageCommon::CreateImage(const char *type, int width, int height, bool addAlpha, unsigned int scanlineAlignement)
 {
 //TImageCommon
 String iType = String(type);
@@ -116,7 +118,7 @@ if (width == 0 || height == 0)
    return 0;
 if (!FInternalImageList)
    FInternalImageList = new TList();
-TInternalImage *internalImage = new TInternalImage(iType, width, height);
+TInternalImage *internalImage = new TInternalImage(iType, width, height, addAlpha, scanlineAlignement);
 if (internalImage)
    FInternalImageList->Add(internalImage);
 else
@@ -125,7 +127,7 @@ internalImage->luaImage->id = FInternalImageList->Count;
 return internalImage->luaImage;
 }
 //---------------------------------------------------------------------------
-// create new internal image  from Opencv Mat (exportedimage) only TYPE_B3 and TYPE_B1
+// create new internal image  from Opencv Mat (exportedimage) only TYPE_B3, TYPE_B3 + alpha and TYPE_B1
 TLuaImageVoid* TImageCommon::CreateImage(SocvImageData *img)
 {
 if (!img)
@@ -173,12 +175,32 @@ if (FInternalImageList)
    for (int i = 0; i < FInternalImageList->Count; i++)
 	   {
 	   TInternalImage *internalImage = (TInternalImage*)(FInternalImageList->Items[i]);
-	   delete internalImage;
-       internalImage = 0;
+	   if (internalImage)
+		  {
+		  delete internalImage;
+		  internalImage = 0;
+		  }
 	   }
    delete FInternalImageList;
    FInternalImageList = 0;
    }
+}
+//---------------------------------------------------------------------------
+bool TImageCommon::ReleaseInternalImage(int idx)
+{
+if (FInternalImageList)
+   {
+   if (idx < 0 || idx >= FInternalImageList->Count)
+      return false;
+   TInternalImage *internalImage = (TInternalImage*)(FInternalImageList->Items[idx]);
+   if (internalImage)
+	  {
+	  delete internalImage;
+	  internalImage = 0;
+	  return true;
+	  }
+   }
+return false;
 }
 //---------------------------------------------------------------------------
 void TImageCommon::CopyImage(TLuaImageByte1 *inp, TLuaImageByte1 *out, TLuaRoi *srcRoi, TLuaRoi *dstRoi)
@@ -214,6 +236,8 @@ for (int i = inpRoi.top; i < inpRoi.bottom; i++)
 		   break;
 		for (int k = 0; k < 3; k++)
 			out->plane[ii][jj].ch[k] = inp->plane[i][j].ch[k];
+		if (inp->alpha && out->alpha)
+		   out->alpha[ii][jj].ch[0] = inp->alpha[i][j].ch[0];
 		jj++;
 		}
 	ii++;
@@ -275,6 +299,25 @@ for (int i = 0; i < inp->height; i++)
 		double b = inp->plane[i][j].ch[_chob];
 		double value = b*0.11 + g * 0.59 + r * 0.30;
 		out->plane[i][j].ch[0] =  value < 0.0 ? 0x00 : (value > 255.0 ? 0xff : (Byte)value);
+		}
+	}
+}
+//---------------------------------------------------------------------------
+// 1 channel -> RGB
+void TImageCommon::GrayToRgb(TLuaImageByte1 *inp, TLuaImageByte3 *out, bool alpha)
+{
+// images must be of the same size
+for (int i = 0; i < inp->height; i++)
+	{
+	for (int j = 0; j < inp->width; j++)
+		{
+		for (int k = 0; k < 3; k++)
+			{
+			if (alpha)
+			   out->plane[i][j].ch[k] =  inp->alpha[i][j].ch[0];
+			else
+			   out->plane[i][j].ch[k] =  inp->plane[i][j].ch[0];
+			}
 		}
 	}
 }
@@ -502,6 +545,284 @@ for (x = 0; x < fbgData->w; x++)
 	  yi += fbgData->w;
 	  }
 	}
+}
+//---------------------------------------------------------------------------
+// blend images with mask
+void TImageCommon::BlendWithMask(TLuaImageByte3 *inp, TLuaImageByte1 *mask, TLuaImageByte3 *out, bool alpha)
+{
+// images must be of the same size
+float bgr[3], mask_val;
+for (int i = 0; i < inp->height; i++)
+	{
+	for (int j = 0; j < inp->width; j++)
+		{
+		if (alpha)
+		   mask_val = mask->alpha[i][j].ch[0] / 255.0f;
+		else
+		   mask_val = mask->plane[i][j].ch[0] / 255.0f;
+		for (int k = 0; k < 3; k++)
+			{
+			bgr[k] = (float)inp->plane[i][j].ch[k] * mask_val + (float)out->plane[i][j].ch[k] * (1.0 - mask_val);
+			out->plane[i][j].ch[k] = bgr[k] < 0.0 ? 0x00 : (bgr[k] > 255.0 ? 0xff : bgr[k]);
+			}
+		}
+	}
+}
+//---------------------------------------------------------------------------
+void TImageCommon::DownsampleGray(TLuaImageByte1 *imgIn, TLuaImageByte1 *imgOut)
+{
+// Algorithm: https://sigmapi-design.com/media/fast_box_filter.pdf
+unsigned long norm = spe_SP_NORM;
+unsigned long shift = spe_SP_SHIFT;
+unsigned int x, y, yi, xi, xoc, yi_start, xi_start, yi_end, xi_end, xo_start, xo_end, yo_start, yo_end;
+TRect iBound = Rect(0, 0, imgIn->width, imgIn->height);
+TRect oBound = Rect(0, 0, imgOut->width, imgOut->height);
+yi_start = iBound.top;
+xi_start = iBound.left;
+yi_end   = iBound.bottom;
+xi_end   = iBound.right;
+yo_start  = oBound.top;
+xo_start = oBound.left;
+yo_end   = oBound.bottom;
+xo_end   = oBound.Right;
+float fX = (float)iBound.Width() / (float)oBound.Width();
+float fY = (float)iBound.Height() / (float)oBound.Height();
+unsigned long pixContribX = (unsigned long)((float)norm / fX);
+unsigned long pixContribY = (unsigned long)((float)norm / fY);
+unsigned long sumContribX, sumContribY, restContribY, yContrib;
+unsigned long outVal;
+unsigned long *cumulY = new unsigned long [oBound.Width()];
+bool outX, outY, outLastRow;
+memset(cumulY, 0, oBound.Width()*sizeof(unsigned long));
+//for (int i = 0; i < oBound.Width(); i++)
+//    cumulY[i] = 0;
+//
+y = yo_start;
+sumContribY = norm - pixContribY;
+restContribY = 0;
+yContrib = pixContribY;
+outY = false;
+outLastRow = false;
+for (yi = yi_start; yi < yi_end; yi++)
+	{
+	x = xo_start;
+	xoc = 0;
+	outVal = 0;
+	sumContribX = norm;
+	for (xi = xi_start; xi < xi_end; xi++)
+		{
+		// first pass -> X
+		outX = false;
+		if (sumContribX > pixContribX)
+		   {
+		   outVal += (unsigned long)imgIn->plane[yi][xi].ch[0] * pixContribX;
+		   sumContribX -= pixContribX;
+		   continue;
+		   }
+		// rest of contribution factor (sumContrib < pixContrib)
+		outVal += (unsigned long)imgIn->plane[yi][xi].ch[0] * sumContribX;
+		// done - output pixel to y culmulative
+		cumulY[xoc] += (outVal>>shift) * yContrib;
+		if (outY)
+		   {
+		   // done - output pixel
+		   imgOut->plane[y][x].ch[0] = (Byte)(cumulY[xoc] >>shift);
+		   // contribution factor for next pixels block (pixContribY - sumContribY)
+		   cumulY[xoc] = (outVal>>shift) * restContribY;
+		   }
+		// contribution factor for next pixels block (pixContribX - sumContribX)
+		sumContribX = pixContribX - sumContribX;
+		outVal = (unsigned long)imgIn->plane[yi][xi].ch[0] * sumContribX;
+		sumContribX = norm - sumContribX;
+		//
+		outX = true;
+		x++;
+		xoc = x - xo_start;
+		if (x >= xo_end)
+		   break;
+		}
+	// output last pixel
+	if (!outX)
+	   {
+	   cumulY[xoc] += (outVal>>shift)*yContrib;
+	   if (outY)
+		  {
+		  // done - output pixel
+		  imgOut->plane[y][x].ch[0] = (Byte)(cumulY[xoc] >>shift);
+		  // contribution factor for next pixels block (pixContribY - sumContribY)
+		  cumulY[xoc] = (outVal>>shift) * restContribY;
+		  }
+	   }
+	if (outY)
+	   {
+	   if (y == yo_end-1)
+		  {
+		  outLastRow = true;
+		  break;
+		  }
+	   y++;
+	   }
+	if (y >= yo_end)
+	   break;
+	outY = false;
+	if (sumContribY > pixContribY)
+	   {
+	   yContrib = pixContribY;
+	   sumContribY -= pixContribY;
+	   continue;
+	   }
+	yContrib = sumContribY;
+	restContribY = pixContribY - sumContribY;
+	sumContribY = norm - restContribY;
+	outY = true;
+	}
+// output last row
+if (!outLastRow)
+   {
+   for (unsigned int xo = xo_start; xo < xo_end; xo++)
+	   imgOut->plane[y][xo].ch[0] = (Byte)(cumulY[xo - xo_start] >>shift);
+   }
+delete []cumulY;
+}
+//---------------------------------------------------------------------------
+void TImageCommon::DownsampleRGB(TLuaImageByte3 *imgIn, TLuaImageByte3 *imgOut)
+{
+// Algorithm: https://sigmapi-design.com/media/fast_box_filter.pdf
+unsigned long norm = spe_SP_NORM;
+unsigned long shift = spe_SP_SHIFT;
+unsigned int x, y, yi, xi, xoc, yi_start, xi_start, yi_end, xi_end, xo_start, xo_end, yo_start, yo_end;
+TRect iBound = Rect(0, 0, imgIn->width, imgIn->height);
+TRect oBound = Rect(0, 0, imgOut->width, imgOut->height);
+yi_start = iBound.top;
+xi_start = iBound.left;
+yi_end   = iBound.bottom;
+xi_end   = iBound.right;
+yo_start  = oBound.top;
+xo_start = oBound.left;
+yo_end   = oBound.bottom;
+xo_end   = oBound.Right;
+float fX = (float)iBound.Width() / (float)oBound.Width();
+float fY = (float)iBound.Height() / (float)oBound.Height();
+unsigned long pixContribX = (unsigned long)((float)norm / fX);
+unsigned long pixContribY = (unsigned long)((float)norm / fY);
+unsigned long sumContribX, sumContribY, restContribY, yContrib;
+unsigned long outVal[3];
+unsigned long *cumulY[3];
+for (int i = 0; i < 3; i++)
+	{
+	cumulY[i] = new unsigned long [oBound.Width()];
+	memset(cumulY[i], 0, oBound.Width() * sizeof(unsigned long));
+	}
+bool outX, outY, outLastRow;
+y = yo_start;
+sumContribY = norm - pixContribY;
+restContribY = 0;
+yContrib = pixContribY;
+outY = false;
+outLastRow = false;
+for (yi = yi_start; yi < yi_end; yi++)
+	{
+	x = xo_start;
+	xoc = 0;
+	outVal[0] = outVal[1] = outVal[2] = 0;
+	sumContribX = norm;
+	for (xi = xi_start; xi < xi_end; xi++)
+		{
+		// first pass -> X
+		outX = false;
+		if (sumContribX > pixContribX)
+		   {
+		   outVal[0] += (unsigned long)imgIn->plane[yi][xi].ch[0] * pixContribX;
+		   outVal[1] += (unsigned long)imgIn->plane[yi][xi].ch[1] * pixContribX;
+		   outVal[2] += (unsigned long)imgIn->plane[yi][xi].ch[2] * pixContribX;
+		   sumContribX -= pixContribX;
+		   continue;
+		   }
+		// rest of contribution factor (sumContrib < pixContrib)
+		outVal[0] += (unsigned long)imgIn->plane[yi][xi].ch[0] * sumContribX;
+		outVal[1] += (unsigned long)imgIn->plane[yi][xi].ch[1] * sumContribX;
+		outVal[2] += (unsigned long)imgIn->plane[yi][xi].ch[2] * sumContribX;
+		// done - output pixel to y culmulative
+		cumulY[0][xoc] += (outVal[0]>>shift) * yContrib;
+		cumulY[1][xoc] += (outVal[1]>>shift) * yContrib;
+		cumulY[2][xoc] += (outVal[2]>>shift) * yContrib;
+		if (outY)
+		   {
+		   // done - output pixel
+		   imgOut->plane[y][x].ch[0] = (Byte)(cumulY[0][xoc] >>shift);
+		   imgOut->plane[y][x].ch[1] = (Byte)(cumulY[1][xoc] >>shift);
+		   imgOut->plane[y][x].ch[2] = (Byte)(cumulY[2][xoc] >>shift);
+		   // contribution factor for next pixels block (pixContribY - sumContribY)
+		   cumulY[0][xoc] = (outVal[0]>>shift) * restContribY;
+		   cumulY[1][xoc] = (outVal[1]>>shift) * restContribY;
+		   cumulY[2][xoc] = (outVal[2]>>shift) * restContribY;
+		   }
+		// contribution factor for next pixels block (pixContribX - sumContribX)
+		sumContribX = pixContribX - sumContribX;
+		outVal[0] = (unsigned long)imgIn->plane[yi][xi].ch[0] * sumContribX;
+		outVal[1] = (unsigned long)imgIn->plane[yi][xi].ch[1] * sumContribX;
+		outVal[2] = (unsigned long)imgIn->plane[yi][xi].ch[2] * sumContribX;
+		sumContribX = norm - sumContribX;
+		//
+		outX = true;
+		x++;
+		xoc = x - xo_start;
+		if (x >= xo_end)
+		   break;
+		}
+	// output last pixel
+	if (!outX)
+	   {
+	   cumulY[0][xoc] += (outVal[0]>>shift)*yContrib;
+	   cumulY[1][xoc] += (outVal[1]>>shift)*yContrib;
+	   cumulY[2][xoc] += (outVal[2]>>shift)*yContrib;
+	   if (outY)
+		  {
+		  // done - output pixel
+		  imgOut->plane[y][x].ch[0] = (Byte)(cumulY[0][xoc] >>shift);
+		  imgOut->plane[y][x].ch[1] = (Byte)(cumulY[1][xoc] >>shift);
+		  imgOut->plane[y][x].ch[2] = (Byte)(cumulY[2][xoc] >>shift);
+		  // contribution factor for next pixels block (pixContribY - sumContribY)
+		  cumulY[0][xoc] = (outVal[0]>>shift) * restContribY;
+		  cumulY[1][xoc] = (outVal[1]>>shift) * restContribY;
+		  cumulY[2][xoc] = (outVal[2]>>shift) * restContribY;
+		  }
+	   }
+	if (outY)
+	   {
+	   if (y == yo_end-1)
+		  {
+		  outLastRow = true;
+		  break;
+		  }
+	   y++;
+	   }
+	if (y >= yo_end)
+	   break;
+	outY = false;
+	if (sumContribY > pixContribY)
+	   {
+	   yContrib = pixContribY;
+	   sumContribY -= pixContribY;
+	   continue;
+	   }
+	yContrib = sumContribY;
+	restContribY = pixContribY - sumContribY;
+	sumContribY = norm - restContribY;
+	outY = true;
+	}
+// output last row
+if (!outLastRow)
+   {
+   for (unsigned int xo = xo_start; xo < xo_end; xo++)
+	   {
+	   imgOut->plane[y][xo].ch[0] = (Byte)(cumulY[0][xo - xo_start] >>shift);
+	   imgOut->plane[y][xo].ch[1] = (Byte)(cumulY[1][xo - xo_start] >>shift);
+	   imgOut->plane[y][xo].ch[2] = (Byte)(cumulY[2][xo - xo_start] >>shift);
+	   }
+   }
+for (int i = 0; i < 3; i++)
+	delete []cumulY[i];
 }
 //---------------------------------------------------------------------------
 /*

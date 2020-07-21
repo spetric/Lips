@@ -1,3 +1,9 @@
+-- initialize data structures
+function ocv_InitFFI()
+    -- contour data - call only once if needed
+  ffi.cdef[[typedef struct {int x; int y;} SocvPoint;]]  
+  ffi.cdef[[typedef struct {int hierarchy[4]; unsigned int numPts; SocvPoint *points;} SocvContourPts;]] 
+end
 -- set image (source, target, interm1...
 function ocv_SetImage(setName, image)
   return Lua2Host:OpenCVSet(setName, image.Id) 
@@ -33,6 +39,18 @@ end
 -- get last ocv exported image
 function ocv_GetLastImageId(imageType)
   return Lua2Host:OpenCVGet("LastImageId")
+end
+function ocv_GetContoursNum()
+  return Lua2Host:OpenCVGet("NumContours") 
+end
+function ocv_GetContour(idx)
+  local contour = Lua2Host:OpenCVGet("Contour", tostring(idx))
+  local retContour = nil
+  if (contour ~= nil) then
+      retContour = ffi.cast("SocvContourPts*", contour) 
+      --retContour = {Hierarchy = data.hierarchy, NumPts = data.numPts, Points = data.points}
+  end
+  return retContour
 end
 -- set and process image
 function ocv_SetAndProcess(procName, srcImg, tgtImag, ...)

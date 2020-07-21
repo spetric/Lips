@@ -26,6 +26,10 @@
 #pragma link "AdvSmoothEdit"
 #pragma link "AdvSmoothEditButton"
 #pragma link "AdvSmoothImageListBoxPicker"
+#pragma link "dxSkinBlack"
+#pragma link "dxSkinCoffee"
+#pragma link "dxSkinsDefaultPainters"
+#pragma link "dxSkinSilver"
 #pragma resource "*.dfm"
 //TFrameImageCombo *FrameImageCombo;
 //---------------------------------------------------------------------------

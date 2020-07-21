@@ -11,6 +11,8 @@ const int OCW_ERR_NO_EXPORT = 8;
 const int OCW_ERR_EXCEPTION = 9;
 const int OCW_ERR_NO_SOURCE_MASK = 10;
 const int OCW_ERR_BAD_SOURCE_MASK = 11; // not 8U1
+const int OCW_ERR_ALPHATARGET_EMPTY = 12;
+const int OCW_ERR_BAD_DATA = 13;
 // enums
 enum TImgType {
 	OCW_IMG_SOURCE_RGB = 0, OCW_IMG_SOURCE_RGBA, OCW_IMG_TARGET_RGB, OCW_IMG_TARGET_RGBA, OCW_MASK_SOURCE, OCW_MASK_TARGET
@@ -43,12 +45,15 @@ enum TEdgeType { OCW_ET_NONE = 0, OCW_ET_CANNY, OCW_ET_SOBEL_V, OCW_ET_SOBEL_H }
 enum TKernelFunc { OCW_KF_COS = 0, OCW_KF_SIN = 1, OCW_KF_COS_C = 2, OCW_KF_SIN_C = 3, OCW_KF_TRIANGLE = 4, OCW_KF_SQUARE = 10 };
 enum TContourRetrievalMode { OCW_RETR_EXTERNAL = 0, OCW_RETR_LIST = 1, OCW_RETR_CCOMP = 2, OCW_RETR_TREE = 3, OCW_RETR_FLOODFILL = 4 };
 enum TContourApproximationMode { OCW_CHAIN_APPROX_NONE = 1, OCW_CHAIN_APPROX_SIMPLE = 2, OCW_CHAIN_APPROX_TC89_L1 = 3, OCW_CHAIN_APPROX_TC89_KCOS = 4 };
-enum TFeature2DType { OCW_FD_AKAZE = 0, OCW_FD_ORB, OCW_FD_BRISK, OCW_FD_KAZE };
+enum TFeature2DType { OCW_FD_AKAZE = 0, OCW_FD_ORB, OCW_FD_BRISK, OCW_FD_KAZE, OCW_FD_SURF, OCW_FD_SIFT, OCW_FD_FAST_DAISY, OCW_FD_FAST_FREAK};
+enum TFeature2DChoice {OCW_FCH_SRCTGT = 0, OCW_FCH_SRC, OCW_FCH_TGT, OCW_FCH_SRCTGT_MASK, OCW_FCH_SRC_MASK, OCW_FCH_TGT_MASK};
 enum TMatchType { OCW_MT_BRUTE_HAMMING = 0, OCW_MT_BFM, OCW_MT_FLANN };   //TODO: etc...
 enum THomographyType { OCW_HOMO_LS = 0, OCW_HOMO_RANSAC, OCW_HOMO_LMEDS, OCW_HOMO_RHO };
 enum TCloneType {OCW_CLONE_NORMAL = 1, OCW_CLONE_MERGE, OCW_CLONE_MT};
-enum TInpaintType {OCW_INPAINT_NS = 0, OCW_INPAINT_TELEA, OCW_INPAINT_FUZZY_ONESTEP, OCW_INPAINT_FUZZY_MULTISTEP, OCW_INPAINT_FUZZY_ITERATIVE };
-
+enum TInpaintType {OCW_INPAINT_NS = 0, OCW_INPAINT_TELEA, OCW_INPAINT_FUZZY_ONESTEP, OCW_INPAINT_FUZZY_MULTISTEP, OCW_INPAINT_FUZZY_ITERATIVE, OCW_INPAINT_FSR_BEST, OCW_INPAINT_FSR_FAST, OCW_INPAINT_SHIFT_MAP };
+enum TDnnSuperResType {OCW_SUPERRES_ESPCN = 0, OCW_SUPERRES_FSRCNN, OCW_SUPERRES_LAPSRN, OCW_SUPERRES_EDSR};
+enum TSaliencyType {OCW_SALIENCY_FINE_GRAINED = 0, OCW_SALIENCY_SPECTRAL_RESIDUAL};
+enum TFeature2DReduction {OCW_HOSR_OUTLIERS = 0, OCW_HOSR_RKD_ASIS, OCW_HOSR_RKD_ADJUST, OCW_HOSR_TGT_MASK}; // for multiple objects and enhanecment
 // structs
 struct SocvRoi
 {
@@ -87,13 +92,14 @@ struct SocvPoint
 };
 struct SocvContourPts
 {
+	int hierarchy[4];		// for simplified output (contour iteration)
 	unsigned int numPts;
 	SocvPoint *points;
 };
 struct SocvContourData
 {
 	unsigned int numContours;
-	void *hierarchy;
+	int *hierarchy;
 	SocvContourPts *contours;
 };
 struct SocvLineData
@@ -103,9 +109,19 @@ struct SocvLineData
 };
 struct SocvHomography
 {
+	TFeature2DType fType;
+	int  maxSrcKeys;
+	int  maxTgtKeys;
+	TMatchType mType;
+	float matchParam;
+	unsigned int initMinMatches;
 	unsigned int minMatches;
-	THomographyType type;
-	bool outImage;
+	THomographyType hType;
+	bool exportImage;
+	bool addAlpha;
 	bool warp2SS;
+	int matches;
+	int inliers;
+	int outliers;
 };
 

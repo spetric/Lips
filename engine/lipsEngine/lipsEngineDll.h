@@ -33,6 +33,7 @@ DLLIMPORT void  __stdcall lipsSetCbLoadImage(TLuaDoubleString loadimageCb);
 DLLIMPORT void  __stdcall lipsSetCbExportImage(TLuaExportImage exportimageCb);
 DLLIMPORT void  __stdcall lipsSetCbHostDialog(TLuaHostDialog hostdialogCb);
 DLLIMPORT void  __stdcall lipsSetCbCommand(TLuaDoubleString commandCb);
+DLLIMPORT void  __stdcall lipsSetCbExportRawData(TLuaExportRawData exportrawdataCb);
 DLLIMPORT bool __stdcall  lipsOcvInstalled(void);
 DLLIMPORT bool __stdcall  lipsOcvInitialized(void);
 // test - mouse events

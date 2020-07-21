@@ -55,7 +55,8 @@ class lipsEngineWrapper
 	  TLuaDoubleString LoadImageCb;
 	  TLuaExportImage ExportImageCb;
 	  TLuaHostDialog  HostDialogCb;
-      TLuaDoubleString CommandCb;
+	  TLuaDoubleString CommandCb;
+	  TLuaExportRawData ExportRawDataCb;
   // R/O properties
   __property AnsiString LuaErrorMessage = {read = FLuaErrorString};
   __property bool OcvInstalled  = {read = FOcvAlive};

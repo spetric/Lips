@@ -6,8 +6,8 @@
         <AppType>Application</AppType>
         <MainSource>projLips.cpp</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
@@ -58,8 +58,8 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
-        <VerInfo_Locale>1050</VerInfo_Locale>
         <Custom_Styles>&quot;Charcoal Dark Slate|VCLSTYLE|$(BDSCOMMONDIR)\Styles\CharcoalDarkSlate.vsf&quot;</Custom_Styles>
+        <VerInfo_Locale>1050</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <Icon_MainIcon>$(BDS)\bin\cbuilder_PROJECTICON.ico</Icon_MainIcon>
         <Multithreaded>true</Multithreaded>
@@ -83,7 +83,6 @@
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <Icon_MainIcon>lua.ico</Icon_MainIcon>
         <ILINK_DisableIncrementalLinking>true</ILINK_DisableIncrementalLinking>
-        <ILINK_LibraryPath>D:\petra\pixopediaXE3264\Win32\Debug\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <IncludePath>$(BDSINCLUDE)\windows\vcl;$(IncludePath)</IncludePath>
@@ -94,7 +93,6 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <Icon_MainIcon>lua.ico</Icon_MainIcon>
-        <ILINK_LibraryPath>D:\petra\pixopediaXE3264\Win64\Debug\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
@@ -149,11 +147,17 @@
         <TASM_Debugging>None</TASM_Debugging>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <Icon_MainIcon>lua.ico</Icon_MainIcon>
+        <VerInfo_Locale>1033</VerInfo_Locale>
         <LinkPackageStatics>rtl.lib;vcl.lib;PKIECtrl24.lib;vclx.lib;tmsdXE10.lib;adortl.lib;dbrtl.lib;xmlrtl.lib;vclactnband.lib;vclimg.lib;vcldb.lib;VclSmp.lib;tmsexdXE10.lib;DbxCommonDriver.lib;dsnap.lib;soaprtl.lib;inet.lib;cxLibraryRS24.lib;dxGDIPlusRS24.lib;dxCoreRS24.lib;dxThemeRS24.lib;cxEditorsRS24.lib;dxOfficeCoreRS24.lib;cxDataRS24.lib;dxSkinsCoreRS24.lib;dxSkinBlackRS24.lib;dxSkinBlueprintRS24.lib;dxSkinBlueRS24.lib;dxSkinCaramelRS24.lib;dxSkinCoffeeRS24.lib;dxSkinDarkRoomRS24.lib;dxSkinDarkSideRS24.lib;dxSkinDevExpressDarkStyleRS24.lib;dxSkinDevExpressStyleRS24.lib;dxSkinFoggyRS24.lib;dxSkinGlassOceansRS24.lib;dxSkinHighContrastRS24.lib;dxSkiniMaginaryRS24.lib;dxSkinLilianRS24.lib;dxSkinLiquidSkyRS24.lib;dxSkinLondonLiquidSkyRS24.lib;dxSkinMcSkinRS24.lib;dxSkinMetropolisDarkRS24.lib;dxSkinMetropolisRS24.lib;dxSkinMoneyTwinsRS24.lib;dxSkinOffice2007BlackRS24.lib;dxSkinOffice2007BlueRS24.lib;dxSkinOffice2007GreenRS24.lib;dxSkinOffice2007PinkRS24.lib;dxSkinOffice2007SilverRS24.lib;dxSkinOffice2010BlackRS24.lib;dxSkinOffice2010BlueRS24.lib;dxSkinOffice2010SilverRS24.lib;dxSkinOffice2013DarkGrayRS24.lib;dxSkinOffice2013LightGrayRS24.lib;dxSkinOffice2013WhiteRS24.lib;dxSkinOffice2016ColorfulRS24.lib;dxSkinOffice2016DarkRS24.lib;dxSkinPumpkinRS24.lib;dxSkinSevenClassicRS24.lib;dxSkinSevenRS24.lib;dxSkinSharpPlusRS24.lib;dxSkinSharpRS24.lib;dxSkinSilverRS24.lib;dxSkinSpringTimeRS24.lib;dxSkinStardustRS24.lib;dxSkinSummer2008RS24.lib;dxSkinTheAsphaltWorldRS24.lib;dxSkinValentineRS24.lib;dxSkinVisualStudio2013BlueRS24.lib;dxSkinVisualStudio2013DarkRS24.lib;dxSkinVisualStudio2013LightRS24.lib;dxSkinVS2010RS24.lib;dxSkinWhiteprintRS24.lib;dxSkinXmas2008BlueRS24.lib;cxPageControlRS24.lib;SigmaPiPack.lib;IndyProtocols.lib;IndyCore.lib;IndySystem.lib</LinkPackageStatics>
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppEnableHighDPI>true</AppEnableHighDPI>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <Icon_MainIcon>lua.ico</Icon_MainIcon>
         <LinkPackageStatics>rtl.lib;vcl.lib;PKIECtrl24.lib;vclx.lib;tmsdXE10.lib;adortl.lib;dbrtl.lib;xmlrtl.lib;vclactnband.lib;vclimg.lib;vcldb.lib;VclSmp.lib;tmsexdXE10.lib;DbxCommonDriver.lib;dsnap.lib;soaprtl.lib;inet.lib;cxLibraryRS24.lib;dxGDIPlusRS24.lib;dxCoreRS24.lib;dxThemeRS24.lib;cxEditorsRS24.lib;dxOfficeCoreRS24.lib;cxDataRS24.lib;dxSkinsCoreRS24.lib;dxSkinBlackRS24.lib;dxSkinBlueprintRS24.lib;dxSkinBlueRS24.lib;dxSkinCaramelRS24.lib;dxSkinCoffeeRS24.lib;dxSkinDarkRoomRS24.lib;dxSkinDarkSideRS24.lib;dxSkinDevExpressDarkStyleRS24.lib;dxSkinDevExpressStyleRS24.lib;dxSkinFoggyRS24.lib;dxSkinGlassOceansRS24.lib;dxSkinHighContrastRS24.lib;dxSkiniMaginaryRS24.lib;dxSkinLilianRS24.lib;dxSkinLiquidSkyRS24.lib;dxSkinLondonLiquidSkyRS24.lib;dxSkinMcSkinRS24.lib;dxSkinMetropolisDarkRS24.lib;dxSkinMetropolisRS24.lib;dxSkinMoneyTwinsRS24.lib;dxSkinOffice2007BlackRS24.lib;dxSkinOffice2007BlueRS24.lib;dxSkinOffice2007GreenRS24.lib;dxSkinOffice2007PinkRS24.lib;dxSkinOffice2007SilverRS24.lib;dxSkinOffice2010BlackRS24.lib;dxSkinOffice2010BlueRS24.lib;dxSkinOffice2010SilverRS24.lib;dxSkinOffice2013DarkGrayRS24.lib;dxSkinOffice2013LightGrayRS24.lib;dxSkinOffice2013WhiteRS24.lib;dxSkinOffice2016ColorfulRS24.lib;dxSkinOffice2016DarkRS24.lib;dxSkinPumpkinRS24.lib;dxSkinSevenClassicRS24.lib;dxSkinSevenRS24.lib;dxSkinSharpPlusRS24.lib;dxSkinSharpRS24.lib;dxSkinSilverRS24.lib;dxSkinSpringTimeRS24.lib;dxSkinStardustRS24.lib;dxSkinSummer2008RS24.lib;dxSkinTheAsphaltWorldRS24.lib;dxSkinValentineRS24.lib;dxSkinVisualStudio2013BlueRS24.lib;dxSkinVisualStudio2013DarkRS24.lib;dxSkinVisualStudio2013LightRS24.lib;dxSkinVS2010RS24.lib;dxSkinWhiteprintRS24.lib;dxSkinXmas2008BlueRS24.lib;cxPageControlRS24.lib;SigmaPiPack.lib;IndyProtocols.lib;IndyCore.lib;IndySystem.lib</LinkPackageStatics>
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppEnableHighDPI>true</AppEnableHighDPI>
@@ -238,24 +242,16 @@
             <DependentOn>spLipsHost\lipsHelper.h</DependentOn>
             <BuildOrder>4</BuildOrder>
         </CppCompile>
-        <LibFiles Include="Win32\Debug\lipsEngine.lib" Condition="'$(Platform)'=='Win32'">
-            <BuildOrder>6</BuildOrder>
-            <IgnorePath>true</IgnorePath>
-        </LibFiles>
-        <LibFiles Include="Win64\Debug\lipsEngine.a" Condition="'$(Platform)'=='Win64'">
-            <BuildOrder>12</BuildOrder>
-            <IgnorePath>true</IgnorePath>
-        </LibFiles>
-        <FormResources Include="spLipsHost\frmLipsU.dfm"/>
         <FormResources Include="spLipsHost\frames\FrameSliderU.dfm"/>
         <FormResources Include="spLipsHost\frames\FrameShellComboBoxU.dfm"/>
-        <FormResources Include="spLipsHost\lipsDownload.dfm"/>
         <FormResources Include="spLipsHost\frames\FrameListBoxU.dfm"/>
-        <FormResources Include="spLipsHost\frames\FrameCheckBoxU.dfm"/>
-        <FormResources Include="spLipsHost\frames\FrameComboBoxU.dfm"/>
+        <FormResources Include="spLipsHost\lipsDownload.dfm"/>
+        <FormResources Include="spLipsHost\frmLipsU.dfm"/>
         <FormResources Include="spLipsHost\frames\FrameImageU.dfm"/>
+        <FormResources Include="spLipsHost\frames\FrameCheckBoxU.dfm"/>
         <FormResources Include="spLipsHost\frames\FrameImageSliderU.dfm"/>
         <FormResources Include="spLipsHost\frames\FrameImageComboU.dfm"/>
+        <FormResources Include="spLipsHost\frames\FrameComboBoxU.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -337,9 +333,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName=".\Win32\Debug\projLips.tds" Configuration="Debug" Class="DebugSymbols">
-                    <Platform Name="Win32">
-                        <RemoteName>projLips.tds</RemoteName>
+                <DeployFile LocalName=".\Win64\Release\projLips.exe" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>projLips.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -380,12 +376,27 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployClass Name="ProjectiOSDeviceResourceRules">
+                <DeployClass Name="DependencyModule">
+                    <Platform Name="Win32">
+                        <Operation>0</Operation>
+                        <Extensions>.dll;.bpl</Extensions>
+                    </Platform>
                     <Platform Name="iOSDevice64">
                         <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="OSX32">
+                        <RemoteDir>Contents\MacOS</RemoteDir>
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
                     </Platform>
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="iOSSimulator">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="ProjectOSXResource">
@@ -764,27 +775,12 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <DeployClass Name="DependencyModule">
-                    <Platform Name="Win32">
-                        <Operation>0</Operation>
-                        <Extensions>.dll;.bpl</Extensions>
-                    </Platform>
+                <DeployClass Name="ProjectiOSDeviceResourceRules">
                     <Platform Name="iOSDevice64">
                         <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                    <Platform Name="OSX32">
-                        <RemoteDir>Contents\MacOS</RemoteDir>
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
                     </Platform>
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                    <Platform Name="iOSSimulator">
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>

@@ -223,15 +223,23 @@ function lips_NormalizeRGB(r, g, b)
   end
   return r, g, b      
 end   
--- Create new HOST image 
--- Note: images are released on the HOST side after script execution
-function lips_CreateImage(imgType, width, height)
-    local ptr = Lua2Host:CreateImage(imgType, width, height)
+-- Create new LIPS image 
+-- Note: all LIPS images are released after script execution
+function lips_CreateImage(imgType, width, height, createAlpha)
+    local addAlpha = false
+    if createAlpha ~= nil then
+       addAlpha = true;
+    end  
+    local ptr = Lua2Host:CreateImage(imgType, width, height, addAlpha)
     if ptr == nil then
        return nil
     else
       return lfGetImage(imgType, ptr)     
     end
+end
+-- Release LIPS image by id
+function lips_ReleaseImage(id)
+    return Lua2Host:ReleaseImage(id)
 end
 -- Load HOST image 
 -- Note: images are released on the HOST side after script execution 
@@ -245,12 +253,21 @@ function lips_LoadImage(filename, outputType)
     end
 end
 -- Export image to HOST
--- Tell HOST to create and show a bitmap from internal image
-function lips_ExportImage(image, asWhat)  
-    local lRet = Lua2Host:ExportImage(image.Id, asWhat)
+-- Tell HOST to create and show a bitmap from LIPS image
+function lips_ExportImage(image, asWhat, showInHost)  
+    local show = true
+    if (showInHost ~= nil) then
+       show = showInHost 
+    end
+    local lRet = Lua2Host:ExportImage(image.Id, asWhat, show)
     return lRet
 end
--- get image from pointer
+-- export contour
+function lips_ExportContour()  
+    local lRet = Lua2Host:ExportRawData(0)
+    return lRet
+end
+-- get LIPS image from pointer
 function lips_GetImage(iType, iPtr)
   if iPtr == nil then
     return nil
@@ -258,7 +275,7 @@ function lips_GetImage(iType, iPtr)
     return lfGetImage(iType, iPtr)         
   end
 end
--- get image from id
+-- get LIPS image from id
 function lips_GetImageFromId(id)
   local iType, iPtr = Lua2Host:GetImage(id)
   if iPtr == nil then
@@ -293,6 +310,14 @@ end
 function lips_Convert_rgb2grayscale(inpImage, outImage)
   return Lua2Host:ConvertColorSpace(inpImage.Id, outImage.Id, "rgb2grayscale") 
 end
+-- gray to rgb
+function lips_Convert_grayscale2rgb(inpImage, outImage)
+  return Lua2Host:ConvertColorSpace(inpImage.Id, outImage.Id, "grayscale2rgb") 
+end
+-- alpha (gray) to rgb
+function lips_Convert_alpha2rgb(inpImage, outImage)
+  return Lua2Host:ConvertColorSpace(inpImage.Id, outImage.Id, "alpha2rgb") 
+end
 -- rgb to xyz
 function lips_Convert_rgb2xyz(inpImage, outImage)
   if (inpImage.Channels ~= 3 and outImage.Channels ~= 3) then 
@@ -324,11 +349,30 @@ end
 function lips_Check(cmd, param)
   return Lua2Host:Checker(cmd, param) 
 end
+-- processing - blur (grayscale)
 function lips_Blur(inpImage, outImage, radius)
   if inpImage.Channels ~= outImage.Channels then
     return false    
   end
-  return Lua2Host:ProcessImage(inpImage.Id, outImage.Id, "blur", tostring(radius)) 
+  local params = tostring(inpImage.Id)..", "..tostring(outImage.Id)..", "..tostring(radius)
+  return Lua2Host:ProcessImage("blur", params)   
+end
+-- processing - blend images with mask
+function lips_Blend(inpImage, maskImage, outImage, alpha)
+  if inpImage.Channels ~= outImage.Channels then
+    return false    
+  end
+  local params = tostring(inpImage.Id)..", "..tostring(maskImage.Id)..", "..tostring(outImage.Id)
+  ..", "..tostring(alpha)
+  return Lua2Host:ProcessImage("blend", params)   
+end
+-- processing - downsample (grayscale/RGB)
+function lips_Downsample(inpImage, outImage)
+  if inpImage.Channels ~= outImage.Channels then
+    return false    
+  end
+  local params = tostring(inpImage.Id)..", "..tostring(outImage.Id)
+  return Lua2Host:ProcessImage("downsample", params)   
 end
 -- test
 function lips_RegisterMouseEvent(md, mm, mu) -- mouseDown, mouseMove, mouseUp 

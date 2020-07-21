@@ -31,6 +31,10 @@
 #include "AdvSmoothEditButton.hpp"
 #include "AdvSmoothImageListBoxPicker.hpp"
 #include <Vcl.Mask.hpp>
+#include "dxSkinBlack.hpp"
+#include "dxSkinCoffee.hpp"
+#include "dxSkinsDefaultPainters.hpp"
+#include "dxSkinSilver.hpp"
 //---------------------------------------------------------------------------
 class TFrameImageCombo : public TFrame
 {

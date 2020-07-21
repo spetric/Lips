@@ -17,9 +17,12 @@ OnLuaRefreshParams = 0;
 OnLuaLoadImage = 0;
 OnLuaHostDialog = 0;
 OnLuaSendCommand = 0;
+OnLuaExportRawData = 0;
 FOpenCV.sourceId = 0;
 FOpenCV.targetId = 0;
 FDKIdx = -1;
+FExportContours.numContours = 0;
+FCurrentContour = 0;
 }
 //---------------------------------------------------------------------------
 // destructor
@@ -126,9 +129,9 @@ return false;
 // image routines
 //---------------------------------------------------------------------------
 // create new internal image
-TLuaImageVoid* TLuaHost::CreateImage(const char *type, int width, int height)
+TLuaImageVoid* TLuaHost::CreateImage(const char *type, int width, int height, bool addAlpha)
 {
-return TImageCommon::CreateImage(type, width, height);
+return TImageCommon::CreateImage(type, width, height, addAlpha);
 }
 //---------------------------------------------------------------------------
 // load image from file  - host job!
@@ -165,7 +168,7 @@ return img;
 // 1. image must exists (see CreateImage)
 // 2. image must be of type RGB or RGBA (<-TODO)
 // 2. OnLuaExportImage must be set
-bool TLuaHost::ExportImage(int idExport, const char *exptype)
+bool TLuaHost::ExportImage(int idExport, const char *exptype, bool show)
 {
 String texp;
 TLuaImageVoid *iexp = TImageCommon::GetImageFromId(idExport, texp);
@@ -195,7 +198,7 @@ else
    }
 if (OnLuaExportImage)
    {
-   if (!OnLuaExportImage(&FExpImage, (bool)iexp->orientation))
+   if (!OnLuaExportImage(&FExpImage, (bool)iexp->orientation, show))
 	  return false;
    }
 return true;
@@ -211,6 +214,12 @@ TLuaHost::TStrPtr data;
 data.str = FLuaType.c_str();
 data.ptr = LPVOID(img);
 return data;
+}
+//---------------------------------------------------------------------------
+// release internal image - delete image by id
+bool TLuaHost::ReleaseImage(int id)
+{
+return TImageCommon::ReleaseInternalImage(id);
 }
 //---------------------------------------------------------------------------
 // copy image data
@@ -243,6 +252,25 @@ else if (ti == TYPE_F3)
 else
   lRet = false;
 return lRet;
+}
+//---------------------------------------------------------------------------
+bool TLuaHost::ExportRawData(int type)
+{
+void *rawData = 0;
+if (OnLuaExportRawData)
+   {
+   switch (type)
+	   {
+	   case 0:  // contour
+		    rawData = (void*)FCurrentContour;
+			break;
+	   default:
+			break;
+	   }
+   if (!OnLuaExportRawData(rawData, type))
+	  return false;
+   }
+return true;
 }
 //---------------------------------------------------------------------------
 // color space conversion
@@ -281,6 +309,25 @@ else if (to == TYPE_F3)
 else
   lRet = false;
 return lRet;
+}
+//---------------------------------------------------------------------------
+// gray to rgb
+bool TLuaHost::Conv_gray2rgb(int idInput, int idOutput, bool alpha)
+{
+String ti, to;
+TLuaImageByte1 *ii = (TLuaImageByte1*)TImageCommon::GetImageFromId(idInput, ti);
+TLuaImageByte3 *oi = (TLuaImageByte3*)TImageCommon::GetImageFromId(idOutput, to);
+if (ii == 0 || oi == 0)
+   return false;
+if (ti != TYPE_B1 && to != TYPE_B3)
+   return false;
+if (ii->height != oi->height || ii->width != oi->width)
+   return false;
+if (alpha && ii->alpha == 0)
+   return false;
+// convert it
+TImageCommon::GrayToRgb(ii, oi, alpha);
+return true;
 }
 //---------------------------------------------------------------------------
 // rgb to xyz
@@ -352,7 +399,7 @@ return true;
 }
 //---------------------------------------------------------------------------
 // blur
-bool TLuaHost::Blur(int idInput, int idOutput, const char *radius)
+bool TLuaHost::Blur(int idInput, int idOutput, int radius)
 {
 //test - grayscale only
 TLuaImageVoid  *ii = TImageCommon::GetImageFromId(idInput);
@@ -361,11 +408,46 @@ if (ii == 0 || oi == 0)
    return false;
 if (ii->height != oi->height || ii->width != oi->width)
    return false;
-String r = String(radius);
-TImageCommon::spsFastBlur *fbgData = TImageCommon::FBPrepare(ii, oi, 0, StrToInt(r));
+TImageCommon::spsFastBlur *fbgData = TImageCommon::FBPrepare(ii, oi, 0, radius);
 TImageCommon::FBRunGray(fbgData);
 TImageCommon::FBUnPrepare(fbgData);
 return true;
+}
+//---------------------------------------------------------------------------
+// blend with mask
+bool TLuaHost::Blend(int idInput, int idMask, int idOutput, bool alpha)
+{
+TLuaImageByte3 *ii = (TLuaImageByte3*)TImageCommon::GetImageFromId(idInput);
+TLuaImageByte3 *oi = (TLuaImageByte3*)TImageCommon::GetImageFromId(idOutput);
+TLuaImageByte1 *mi = (TLuaImageByte1*)TImageCommon::GetImageFromId(idMask);
+if (ii == 0 || oi == 0)
+   return false;
+if (ii->height != oi->height || ii->width != oi->width || ii->height != mi->height || ii->width != mi->width)
+   return false;
+TImageCommon::BlendWithMask(ii, mi, oi, alpha);
+return true;
+}
+//---------------------------------------------------------------------------
+bool TLuaHost::DownSample(int idInput, int idOutput)
+{
+String ti, to;
+TLuaImageVoid *ii = TImageCommon::GetImageFromId(idInput, ti);
+TLuaImageVoid *oi = TImageCommon::GetImageFromId(idOutput, to);
+if (ii == 0 || oi == 0 || ti != to)
+   return false;
+if (ti == TYPE_B1)
+   {
+   // downsample
+   TImageCommon::DownsampleGray((TLuaImageByte1*)ii, (TLuaImageByte1*)oi);
+   return true;
+   }
+else if (ti == TYPE_B3)
+   {
+   // downsample
+   TImageCommon::DownsampleRGB((TLuaImageByte3*)ii, (TLuaImageByte3*)oi);
+   return true;
+   }
+return false;
 }
 //---------------------------------------------------------------------------
 // checker
@@ -429,7 +511,6 @@ if (strProc == "srcmask")
 		   rc = ocvSetImage(ocvType, img->width, img->height, img->plane[0], img->imageStride);
 	   }
    }
-
 else if (strProc == "cleardk")
    {
    ocvClearDK(id);
@@ -459,8 +540,8 @@ if (strProc == "host")
 		  return false;
 	  ocvRoi.left = TImageCommon::SourceRoi->left;
 	  ocvRoi.right = TImageCommon::SourceRoi->right;
-	  ocvRoi.top = ii->height - TImageCommon::SourceRoi->top - 1;
-	  ocvRoi.bottom = ii->height - TImageCommon::SourceRoi->bottom - 1;
+	  ocvRoi.bottom = ii->height - TImageCommon::SourceRoi->top - 1;
+	  ocvRoi.top = ii->height - TImageCommon::SourceRoi->bottom - 1;
 	   if (TImageCommon::TargetRoi)
 		  ocvSetRoi(OCW_ROI_SOURCE, ocvRoi);
 	   else
@@ -470,8 +551,8 @@ if (strProc == "host")
 	  {
 	  ocvRoi.left = TImageCommon::TargetRoi->left;
 	  ocvRoi.right = TImageCommon::TargetRoi->right;
-	  ocvRoi.top = oi->height - TImageCommon::TargetRoi->top - 1;
-	  ocvRoi.bottom = oi->height - TImageCommon::TargetRoi->bottom - 1;
+	  ocvRoi.bottom = oi->height - TImageCommon::TargetRoi->top - 1;
+	  ocvRoi.top = oi->height - TImageCommon::TargetRoi->bottom - 1;
 	  ocvSetRoi(OCW_ROI_TARGET, ocvRoi);
 	  }
    }
@@ -483,8 +564,8 @@ else if (strProc == "source")
 	  {
 	  ocvRoi.left = roi->left;
 	  ocvRoi.right = roi->right;
-	  ocvRoi.top = ii->height - roi->top - 1;
-	  ocvRoi.bottom = ii->height - roi->bottom - 1;
+	  ocvRoi.bottom = ii->height - roi->top - 1;
+	  ocvRoi.top = ii->height - roi->bottom - 1;
 	  ocvSetRoi(OCW_ROI_SOURCE, ocvRoi);
 	  }
    else
@@ -498,8 +579,8 @@ else if (strProc == "target")
 	  {
 	  ocvRoi.left = roi->left;
 	  ocvRoi.right = roi->right;
-	  ocvRoi.top = oi->height - roi->top - 1;
-	  ocvRoi.bottom = oi->height - roi->bottom - 1;
+	  ocvRoi.bottom = oi->height - roi->top - 1;
+	  ocvRoi.top = oi->height - roi->bottom - 1;
 	  ocvSetRoi(OCW_ROI_TARGET, ocvRoi);
 	  }
    else
@@ -512,8 +593,8 @@ else
 return true;
 }
 //---------------------------------------------------------------------------
-// opencv get
-int TLuaHost::OcvGet(const char *proc)
+// opencv get int - no params
+int TLuaHost::OcvGetInt(const char *proc)
 {
 String strProc = String(proc).Trim().LowerCase();
 int nRet = -1;
@@ -527,7 +608,37 @@ else if (strProc == "lastimageid")
    TLuaImageVoid *luaImg = TImageCommon::CreateImage(ocvImg);
    nRet = luaImg->id;
    }
+else if (strProc == "numcontours")
+  {
+  nRet = (int)FExportContours.numContours;
+  }
 return nRet;
+}
+//---------------------------------------------------------------------------
+// opencv get ptr - 1 params set
+void* TLuaHost::OcvGetPtr(const char *proc, const char *params)
+{
+String strProc = String(proc).Trim().LowerCase();
+String strParams = String(params).Trim().LowerCase();
+void *pRet = 0;
+if (strProc == "contour")
+   {
+   int idx = StrToInt(strParams);
+   FCurrentContour = 0;
+   if (FExportContours.numContours > 0)
+	  {
+	  if (idx < (int)FExportContours.numContours)
+		 {
+		 int *hPtr = FExportContours.hierarchy;	// size = 4 * numContours
+		 hPtr = hPtr + (4 * idx);
+		 for (int k = 0; k < 4; k++)
+			 FExportContours.contours[idx].hierarchy[k] = hPtr[k];
+		 FCurrentContour = &(FExportContours.contours[idx]);
+		 pRet = (void*)FCurrentContour;
+		 }
+	   }
+   }
+return pRet;
 }
 //---------------------------------------------------------------------------
 // opencv processing - no params - all in one
@@ -552,6 +663,19 @@ try {
 	else if (strProc == "colorize")
 	   {
 	   rc = ocvColorize(FDKIdx);
+	   }
+	else if (strProc == "releasecontours")
+	   {
+	   rc =	ocvReleaseContours(&FExportContours);
+	   FExportContours.numContours = 0;
+	   }
+	else if (strProc == "clearfeatures2d")
+	   {
+	   rc =	ocvClearFeatures2D();
+	   }
+	else if (strProc == "recalchomography2d")
+	   {
+	   rc = ocvRecalcHomography();
 	   }
 	else
 	   {
@@ -919,7 +1043,18 @@ try {
 	   if (tokens.Length < 1)
 		  throw tokens.Length;
 	   int type = StrToInt(tokens[0]);
-	   rc = ocvCalcFeatures2D((TFeature2DType)type);
+	   int choice = 0;
+	   int maxSrcKeys = 0;
+	   int maxTgtKeys = 0;
+	   if (tokens.Length > 1)
+		   choice = StrToInt(tokens[1].Trim());
+	   if (tokens.Length > 2)
+		   maxSrcKeys = StrToInt(tokens[2].Trim());
+	   if (tokens.Length > 3)
+		   maxTgtKeys = StrToInt(tokens[3].Trim());
+	   // maxSrcKeys and maxTgtKeys represent max numbe of keys to retain after detector is executed.
+       // used for algorithms when separeted detection and compute is needed.
+	   rc = ocvCalcFeatures2D((TFeature2DType)type, (TFeature2DChoice)choice, maxSrcKeys, maxTgtKeys);
 	   }
 	else if (strProc == "matches2d")
 	   {
@@ -943,6 +1078,17 @@ try {
 	   bool warp2SS = StrToBool(tokens[4].Trim());
 	   rc = ocvCalcHomography(minMatches, (THomographyType)type, exportImage, addAlpha, warp2SS);
 	   }
+	else if (strProc == "reducefeatures2d")
+	   {
+	   // parse parameters
+	   if (tokens.Length < 1)
+		  throw tokens.Length;
+	   int  type    = StrToInt(tokens[0]);
+	   bool exportMatchImage = false;
+	   if (tokens.Length > 1)
+		  exportMatchImage = StrToBool(tokens[1].Trim());
+	   rc = ocvReduceFeatures2D((TFeature2DReduction)type, exportMatchImage);
+	   }
 	else if (strProc == "seamlessclone")
 	   {
 	   // parse parameters
@@ -954,6 +1100,67 @@ try {
 	   if (tokens.Length == 3)
 		   type = StrToInt(tokens[2]);
 	   rc = ocvSeamlessClone(centerX, centerY, (TCloneType) type);
+	   }
+	else if (strProc == "inpaint")
+	   {
+	   // parse parameters
+	   if (tokens.Length < 1)
+		  throw tokens.Length;
+	   int type = StrToInt(tokens[0]);
+	   double radius = 3.0;
+	   if (tokens.Length > 1)
+		  radius = StrToFloat(tokens[1], fmt);
+	   rc = ocvInpaint((TInpaintType)type, radius);
+	   }
+	else if (strProc == "colortransfer")
+	   {
+	   // parse parameters
+	   if (tokens.Length != 1)
+		  throw tokens.Length;
+	   bool exportImage = StrToBool(tokens[0].Trim());
+       rc = ocvColorTransfer(exportImage);
+	   }
+	else if (strProc == "staticsaliency")
+	   {
+	   // parse parameters
+	   if (tokens.Length != 1)
+		  throw tokens.Length;
+	   int type = StrToInt(tokens[0].Trim());
+	   rc = ocvStaticSaliency((TSaliencyType)type);
+	   }
+	else if (strProc == "findcontours")
+	   {
+	   // parse parameters
+	   if (tokens.Length != 3)
+		  throw tokens.Length;
+	   int edgeType = StrToInt(tokens[0]);
+	   int retMode  = StrToInt(tokens[1]);
+	   int appMode  = StrToInt(tokens[2]);
+	   rc =	ocvFindContours((TEdgeType) edgeType, (TContourRetrievalMode) retMode, (TContourApproximationMode) appMode, &FExportContours );
+	   }
+	else if (strProc == "floodfillsimple")
+	   {
+	   // parse parameters
+	   if (tokens.Length < 6)
+		  throw tokens.Length;
+	   SocvPoint seed;
+	   seed.y = StrToInt(tokens[0]);
+	   seed.x = StrToInt(tokens[1]);
+	   int tolLo = StrToInt(tokens[2]);
+	   int tolHi = StrToInt(tokens[3]);
+	   int connectivity = StrToInt(tokens[4]);
+	   int fillMode = StrToInt(tokens[5]);
+	   if (tokens.Length == 9)
+		  {
+          // input as  r, g, b
+		  unsigned char pixBGR[3];
+		  pixBGR[2] = StrToInt(tokens[6]);
+		  pixBGR[1] = StrToInt(tokens[7]);
+		  pixBGR[0] = StrToInt(tokens[8]);
+		  rc =	ocvFloodFillSimple(seed, tolLo, tolHi, connectivity, fillMode, pixBGR);
+		  }
+	   else
+		  rc =	ocvFloodFillSimple(seed, tolLo, tolHi, connectivity, fillMode);
 	   }
 	else
 	   {
@@ -1107,6 +1314,13 @@ try {
 	   String model_name = strParams2;
 	   int model_type = StrToInt(tokens3[0]);
 	   rc =	ocvLoadClassifierAndFaceModel(cascade_name.c_str(), model_name.c_str(), (TFaceModelType) model_type, FDKIdx);
+	   }
+	else if (strProc == "dnnsuperresolution")
+	   {
+	   String model_name = strParams1;
+	   int algorithm = StrToInt(strParams2);
+       int scale = StrToInt(strParams3);
+	   rc = ocvDnnSuperResolution(model_name.c_str(), (TDnnSuperResType)algorithm, scale);
 	   }
 	else
 	   {

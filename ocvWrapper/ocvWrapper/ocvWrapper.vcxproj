@@ -72,15 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(CustomBuild)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(CustomBuild)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(CustomBuild)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(CustomBuild)$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -95,8 +99,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\OpenCV\Win32\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_core400d.lib;opencv_highgui400d.lib;opencv_imgproc400d.lib;opencv_features2d400d.lib;opencv_calib3d400d.lib;opencv_flann400d.lib;opencv_dnn400d.lib;opencv_face400d.lib;opencv_objdetect400d.lib;opencv_photo400d.lib;opencv_fuzzy400d.lib;opencv_xphoto400d.lib;opencv_xfeatures2d400d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\OpenCV\Win32Lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_core420d.lib;opencv_highgui420d.lib;opencv_imgproc420d.lib;opencv_features2d420d.lib;opencv_calib3d420d.lib;opencv_flann420d.lib;opencv_dnn420d.lib;opencv_face420d.lib;opencv_objdetect420d.lib;opencv_photo420d.lib;opencv_fuzzy420d.lib;opencv_xphoto420d.lib;opencv_xfeatures2d420d.lib;opencv_dnn_superres420d.lib;opencv_saliency420d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -107,10 +111,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;OCVWRAPPER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\OpenCV\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>D:\OpenCV\Win64Lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_core420d.lib;opencv_highgui420d.lib;opencv_imgproc420d.lib;opencv_features2d420d.lib;opencv_calib3d420d.lib;opencv_flann420d.lib;opencv_dnn420d.lib;opencv_face420d.lib;opencv_objdetect420d.lib;opencv_photo420d.lib;opencv_fuzzy420d.lib;opencv_xphoto420d.lib;opencv_xfeatures2d420d.lib;opencv_dnn_superres420d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -131,8 +138,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\OpenCV\Win32\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_core400.lib;opencv_highgui400.lib;opencv_imgproc400.lib;opencv_features2d400.lib;opencv_calib3d400.lib;opencv_flann400.lib;opencv_dnn400.lib;opencv_face400.lib;opencv_objdetect400.lib;opencv_photo400.lib;opencv_fuzzy400.lib;opencv_xphoto400.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\OpenCV\Win32Lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_core420.lib;opencv_highgui420.lib;opencv_imgproc420.lib;opencv_features2d420.lib;opencv_calib3d420.lib;opencv_flann420.lib;opencv_dnn420.lib;opencv_face420.lib;opencv_objdetect420.lib;opencv_photo420.lib;opencv_fuzzy420.lib;opencv_xphoto420.lib;opencv_xfeatures2d420.lib;opencv_dnn_superres420.lib;opencv_saliency420.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -153,11 +160,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\OpenCV\Win64OpenVino\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_core400.lib;opencv_highgui400.lib;opencv_imgproc400.lib;opencv_features2d400.lib;opencv_calib3d400.lib;opencv_flann400.lib;opencv_dnn400.lib;opencv_face400.lib;opencv_objdetect400.lib;opencv_photo400.lib;opencv_fuzzy400.lib;opencv_xphoto400.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\OpenCV\Win64Lib\Release;D:\OpenCV\Win64OpenVino\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_core420.lib;opencv_highgui420.lib;opencv_imgproc420.lib;opencv_features2d420.lib;opencv_calib3d420.lib;opencv_flann420.lib;opencv_dnn420.lib;opencv_face420.lib;opencv_objdetect420.lib;opencv_photo420.lib;opencv_fuzzy420.lib;opencv_xphoto420.lib;opencv_xfeatures2d420.lib;opencv_dnn_superres420.lib;opencv_saliency420.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="imageDiff.h" />
     <ClInclude Include="ocvDataKeeper.h" />
     <ClInclude Include="ocvGlobals.h" />
     <ClInclude Include="ocvWrapper.h" />
@@ -167,6 +175,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="imageDiff.cpp" />
     <ClCompile Include="ocvDataKeeper.cpp" />
     <ClCompile Include="ocvWrapper.cpp" />
     <ClCompile Include="stdafx.cpp">

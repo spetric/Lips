@@ -192,5 +192,44 @@ Mat TCommonHelper::spGenerateTrigonoKernel(int fType, unsigned int kernelSize, d
 	*/
 	return kernel;
 }
-
+//-------------------------------------------------------------------------------------------------
+// reduce keypoints and descriptors
+int TCommonHelper::spReduceKpds(vector<KeyPoint> &kpts, Mat &descs, Mat &mask, uchar compChar, int minmatches)
+{
+	// calculate elements to be removed
+	int numBytes, remRows, stride, indexOut;
+	int kpx, kpy;
+	size_t i;
+	remRows = 0;
+	for (i = 0; i < kpts.size(); i++)
+		{
+			kpx = (int)kpts[i].pt.x;
+			kpy = (int)kpts[i].pt.y;
+			if (mask.at<uchar>(kpy, kpx) > compChar)
+				remRows++;
+		}
+	if (remRows == 0 || remRows >= abs((int)kpts.size() - minmatches))
+		return 0;	// nothing to do
+	std::vector<KeyPoint> tempKT = kpts;
+	kpts.clear();
+	Mat tempDT = Mat(descs);
+	descs = Mat(tempDT.rows - remRows, tempDT.cols, tempDT.type());
+	numBytes = tempDT.elemSize();
+	stride = tempDT.step;
+	uchar *dataIn = tempDT.data;
+	uchar *dataOut = descs.data;
+	indexOut = 0;
+	for (size_t i = 0; i < tempKT.size(); i++)
+		{
+		kpx = (int)tempKT[i].pt.x;
+		kpy = (int)tempKT[i].pt.y;
+		if (mask.at<uchar>(kpy, kpx) == compChar)
+			{
+			kpts.push_back(tempKT[i]);
+			memcpy(dataOut + indexOut * stride, dataIn + i * stride, stride); // copy descriptor rows
+			indexOut++;
+			}
+		}
+	return remRows;
+}
 

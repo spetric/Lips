@@ -28,6 +28,7 @@ RefreshCb = 0;
 LoadImageCb = 0;
 ExportImageCb = 0;
 HostDialogCb = 0;
+ExportRawDataCb = 0;
 FLs = 0;
 FHostProc = new TLuaHost();
 FSourceRoi = 0;
@@ -456,6 +457,7 @@ FHostProc->OnLuaLoadImage     = LoadImageCb;
 FHostProc->OnLuaExportImage   = ExportImageCb;
 FHostProc->OnLuaHostDialog    = HostDialogCb;
 FHostProc->OnLuaSendCommand   = CommandCb;
+FHostProc->OnLuaExportRawData = ExportRawDataCb;
 // push pointer
 lua_pushlightuserdata(FLs, LPVOID(FHostProc));
 lua_setglobal(FLs,"cppHost");

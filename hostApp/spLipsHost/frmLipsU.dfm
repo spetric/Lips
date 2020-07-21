@@ -34,7 +34,7 @@ object frmLips: TfrmLips
       Height = 641
       Align = alClient
       TabOrder = 0
-      Properties.ActivePage = tabNormal
+      Properties.ActivePage = tabLayers
       Properties.CustomButtons.Buttons = <>
       LookAndFeel.NativeStyle = False
       LookAndFeel.SkinName = 'Darkroom'
@@ -45,10 +45,6 @@ object frmLips: TfrmLips
       object tabNormal: TcxTabSheet
         Caption = 'Single image view'
         ImageIndex = 0
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object panSingle: TPanel
           Left = 0
           Top = 0
@@ -137,10 +133,6 @@ object frmLips: TfrmLips
       object tabLayers: TcxTabSheet
         Caption = 'Layers view'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object panLayers: TPanel
           Left = 0
           Top = 0
@@ -153,7 +145,7 @@ object frmLips: TfrmLips
             Left = 0
             Top = 0
             Width = 181
-            Height = 462
+            Height = 446
             Background = clBtnFace
             Ctl3D = False
             ParentCtl3D = False
@@ -196,9 +188,9 @@ object frmLips: TfrmLips
           end
           object panBlender: TPanel
             Left = 0
-            Top = 462
+            Top = 446
             Width = 185
-            Height = 145
+            Height = 161
             Align = alBottom
             BevelOuter = bvNone
             TabOrder = 1
@@ -211,22 +203,43 @@ object frmLips: TfrmLips
             end
             object Label5: TLabel
               Left = 50
-              Top = 59
+              Top = 56
               Width = 66
               Height = 13
               Caption = 'Transparency'
             end
             object btnLayersMerge: TSpeedButton
-              Left = 2
-              Top = 113
+              Left = 4
+              Top = 130
               Width = 169
               Height = 27
               Caption = 'Merge layers to new image'
               OnClick = btnLayersMergeClick
             end
+            object chkLayersSB: TpxCheckLabel
+              Left = 7
+              Top = 103
+              Width = 237
+              Height = 22
+              CheckBoxSize = 14
+              SmoothText = False
+              PenWidth = 1
+              PenCurvature = 2
+              ColorBrush = 7131391
+              CaptionX = 20
+              CaptionY = 4
+              Checked = True
+              Caption = 'Same blending for all layers'
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWhite
+              Font.Height = -11
+              Font.Name = 'Tahoma'
+              Font.Style = []
+              OnValueChange = chkLayersSBValueChange
+            end
             object editBlend: TpxSpinSlider
               Left = 7
-              Top = 81
+              Top = 76
               Width = 162
               Height = 21
               LayoutStyle = lyPixopedia
@@ -312,10 +325,6 @@ object frmLips: TfrmLips
     object cxTabSheet1: TcxTabSheet
       Caption = 'Lua script'
       ImageIndex = 0
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object panCtrls: TPanel
         Left = 0
         Top = 0
@@ -661,10 +670,6 @@ object frmLips: TfrmLips
     object cxTabSheet2: TcxTabSheet
       Caption = 'Settings'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object boxSelection: TcxGroupBox
         Left = 0
         Top = 0

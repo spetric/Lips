@@ -30,12 +30,16 @@ Host (demo) application is written in Embarcadero C++ and it contains some comme
 ### Lua scripts
 The first line in each Lua script intended for use with Lips engine must begin with `require("_prolog")` statement. The exception of this rule is if you want to debug your Lua script with let's say ZeroBrane Studio (https://studio.zerobrane.com). In this case, the first statement must be `require("_debug")`. To call OpenCV APIs (ocvWrapper.dll), you must also include opencv script `require("_opencv")`.
 
-When script is executed, Lua engine creates following global variables:
+When script is loaded, Lua engine creates following global variables:
 
 - SourceImage (shared image from Host application)
+- SourceMask (shared grayscale image from Host application) 
 - TargetImage (shared image from Host application)
+- TargetMask (shared grayscale image from Host application)
 - SourceRoi (source image roi, initially set to complete image)
 - TargetRoi (target image roi, initially set to complete image)
+- CustomImage (shared image from Host application)
+- CustomMask (shared grayscale image from Host application)
 - ExePath (path to host application directory)
 - ExeWin32 (boolean - true = 32 bit dll, false = 64 bit dll)
 
@@ -62,17 +66,18 @@ The first parameter (step) is of type int and ranges from 1 to 32 with initial v
 
 All required Lua scripts as well as example scripts are also distributed with binary packages. 
 
-NOTE: data.zip file containes face detection and face landmarks model plus style transfer models.
-This archive must be unpacked in data folder under executable directory path if you don't want to modify OpenCV example scripts (face swap, neural style transfer). 
+NOTE: data_face.zip file containes face detection and face landmarks model. data_stylemodels.zip contains neural style transfer models.
+These archives must be unpacked in data/(face | stylemodels) folders under executable directory path if you don't want to modify OpenCV example scripts (face swap, neural style transfer). 
 
 ### Screenshots
 Here are few screenshots of host application after executing various Lua scripts:
-<p align='center'>
+<p align='left'>
     </br>
     <img src='screens/screen1.jpg' width='200'>
     <img src='screens/screen2.jpg' width='200'>
     <img src='screens/screen3.jpg' width='200'>
     <img src='screens/screen4.jpg' width='200'>
+    <img src='screens/screen5.jpg' width='200'>    
 </p>
 
 ### License

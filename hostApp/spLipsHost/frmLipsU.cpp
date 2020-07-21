@@ -161,7 +161,7 @@ if (openDialog->Execute())
    ic = new TImageContainer(new TIEBitmap(ienIO->IEBitmap), "target", -2);
    FImageList->Add(ic);    // target = source copy
    mView->InsertImage(1);
-   setIcmv(0, ic);
+   setIcmv(1, ic);
    mView->SelectedImage = 0;
    mViewImageSelect(this, mView->SelectedImage);
    checkImageFrames();

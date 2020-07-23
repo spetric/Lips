@@ -428,7 +428,8 @@ else
   else
 	 {
 	  // target image has been loaded (TODO: chheck if target image has been modified!!!)
-	  if (icTgt->Image && icTgt->Tag == -2)
+	  //if (icTgt->Image && icTgt->Tag == -2)
+	  if (icTgt)
 		 {
 		 //luaMemo->Lines->Strings[luaMemo->Lines->Count - 1] = "Done!";
 		 if (ieViewSingle->Selected && FSelectionRoiEnabled)

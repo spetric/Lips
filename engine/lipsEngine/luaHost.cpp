@@ -712,11 +712,12 @@ fmt.DecimalSeparator = '.';
 String strParams = String(params).Trim().LowerCase();
 // parse parameters
 TStringDynArray tokens = SplitString(strParams, ",");
+int tkl = tokens.Length;
 try {
 	if (strProc == "blur")
 	   {
-	   if (tokens.Length < 2)
-		  throw tokens.Length;
+	   if (tkl < 2)
+		  throw tkl;
 	   unsigned int kx = StrToInt(tokens[0]);
 	   unsigned int ky = StrToInt(tokens[1]);
 	   if (tokens.Length == 2)
@@ -729,15 +730,15 @@ try {
 	   }
 	else if (strProc == "median")
 	   {
-	   if (tokens.Length < 1)
-		  throw tokens.Length;
+	   if (tkl < 1)
+		   throw tkl;
 	   unsigned int kSize = StrToInt(tokens[0]);
 	   rc = ocvMedianBlur(kSize);
 	   }
 	else if (strProc == "gaussian")
 	   {
-	   if (tokens.Length < 4)
-		  throw tokens.Length;
+	   if (tkl < 4)
+		  throw tkl;
 	   unsigned int kx = StrToInt(tokens[0]);
 	   unsigned int ky = StrToInt(tokens[1]);
 	   double sigmaX = StrToFloat(tokens[2], fmt);
@@ -752,8 +753,8 @@ try {
 	   }
 	else if (strProc == "bilateral")
 	   {
-	   if (tokens.Length < 3)
-		  throw tokens.Length;
+	   if (tkl < 3)
+		  throw tkl;
 	   int dia =  StrToInt(tokens[0]);
 	   double sigmaColor = StrToFloat(tokens[1], fmt);
 	   double sigmaSpace = StrToFloat(tokens[2], fmt);
@@ -767,8 +768,8 @@ try {
 	   }
 	else if (strProc == "laplacian")
 	   {
-	   if (tokens.Length < 4)
-		  throw tokens.Length;
+	   if (tkl < 4)
+		  throw tkl;
 	   unsigned int ksize =  StrToInt(tokens[0]);
 	   double scale = StrToFloat(tokens[1], fmt);
 	   double delta = StrToFloat(tokens[2], fmt);
@@ -783,8 +784,8 @@ try {
 	   }
 	else if (strProc == "scharr")
 	   {
-	   if (tokens.Length < 5)
-		  throw tokens.Length;
+	   if (tkl < 5)
+		  throw tkl;
 	   unsigned int dx =  StrToInt(tokens[0]);
 	   unsigned int dy =  StrToInt(tokens[1]);
 	   double scale = StrToFloat(tokens[2], fmt);
@@ -800,8 +801,8 @@ try {
 	   }
 	else if (strProc == "sobel")
 	   {
-	   if (tokens.Length < 6)
-		  throw tokens.Length;
+	   if (tkl < 6)
+		  throw tkl;
 	   unsigned int dx =  StrToInt(tokens[0]);
 	   unsigned int dy =  StrToInt(tokens[1]);
 	   int ksize   =  StrToInt(tokens[2]);
@@ -818,8 +819,8 @@ try {
 	   }
 	else if (strProc == "box")
 	   {
-	   if (tokens.Length < 3)
-		  throw tokens.Length;
+	   if (tkl < 3)
+		  throw tkl;
 	   unsigned int kx = StrToInt(tokens[0]);
 	   unsigned int ky = StrToInt(tokens[1]);
 	   bool normalize = StrToBool(tokens[2].Trim());
@@ -833,8 +834,8 @@ try {
 	   }
 	else if (strProc == "sqrbox")
 	   {
-	   if (tokens.Length < 3)
-		  throw tokens.Length;
+	   if (tkl < 3)
+		  throw tkl;
 	   unsigned int kx = StrToInt(tokens[0]);
 	   unsigned int ky = StrToInt(tokens[1]);
 	   bool normalize = StrToBool(tokens[2].Trim());
@@ -848,8 +849,8 @@ try {
 	   }
 	else if (strProc == "dilate")
 	   {
-	   if (tokens.Length < 4)
-		  throw tokens.Length;
+	   if (tkl < 4)
+		  throw tkl;
 	   unsigned int kx = StrToInt(tokens[0]);
 	   unsigned int ky = StrToInt(tokens[1]);
 	   int shape = StrToInt(tokens[2]);
@@ -864,8 +865,8 @@ try {
 	   }
 	else if (strProc == "erode")
 	   {
-	   if (tokens.Length < 4)
-		  throw tokens.Length;
+	   if (tkl < 4)
+		  throw tkl;
 	   unsigned int kx = StrToInt(tokens[0]);
 	   unsigned int ky = StrToInt(tokens[1]);
 	   int shape = StrToInt(tokens[2]);
@@ -880,8 +881,8 @@ try {
 	   }
 	else if (strProc == "morphologyex")
 	   {
-	   if (tokens.Length < 5)
-		  throw tokens.Length;
+	   if (tkl < 5)
+		  throw tkl;
 	   unsigned int kx = StrToInt(tokens[0]);
 	   unsigned int ky = StrToInt(tokens[1]);
 	   int opType = StrToInt(tokens[2]);
@@ -897,8 +898,8 @@ try {
 	   }
 	else if (strProc == "threshold")
 	   {
-	   if (tokens.Length < 3)
-		  throw tokens.Length;
+	   if (tkl < 3)
+		  throw tkl;
 	   double thresh = StrToFloat(tokens[0], fmt);
 	   double maxval = StrToFloat(tokens[1], fmt);
 	   int type = StrToInt(tokens[2]);
@@ -906,8 +907,8 @@ try {
 	   }
 	else if (strProc == "adaptivethreshold")
 	   {
-	   if (tokens.Length < 5)
-		  throw tokens.Length;
+	   if (tkl < 5)
+		  throw tkl;
 	   double maxval = StrToFloat(tokens[0], fmt);
 	   int method = StrToInt(tokens[1]);
 	   int type = StrToInt(tokens[2]);
@@ -917,8 +918,8 @@ try {
 	   }
 	else if (strProc == "distancetransform")
 	   {
-	   if (tokens.Length < 3)
-		  throw tokens.Length;
+	   if (tkl < 3)
+		  throw tkl;
 	   bool gray = StrToBool(tokens[0].Trim());
 	   int type = StrToInt(tokens[1]);
 	   int maskSize = StrToInt(tokens[2]);
@@ -926,8 +927,8 @@ try {
 	   }
 	else if (strProc == "canny")
 	   {
-	   if (tokens.Length < 4)
-		  throw tokens.Length;
+	   if (tkl < 4)
+		  throw tkl;
 	   double threshold1 = StrToFloat(tokens[0], fmt);
 	   double threshold2 = StrToFloat(tokens[1], fmt);
 	   unsigned int apertureSize = StrToInt(tokens[2]);
@@ -936,15 +937,15 @@ try {
 	   }
 	else if (strProc == "flip")
 	   {
-	   if (tokens.Length < 1)
-		  throw tokens.Length;
+	   if (tkl < 1)
+		  throw tkl;
 	   int flipCode = StrToInt(tokens[0]);
 	   rc = ocvFlip(flipCode);
 	   }
 	else if (strProc == "gaborius")
 	   {
-	   if (tokens.Length < 7)
-		  throw tokens.Length;
+	   if (tkl < 7)
+		  throw tkl;
 	   unsigned int step = StrToInt(tokens[0]);
 	   unsigned int kernelSize = StrToInt(tokens[1]);
 	   double sigma = StrToFloat(tokens[2], fmt);
@@ -956,8 +957,8 @@ try {
 	   }
 	else if (strProc == "trigonometrius")
 	   {
-	   if (tokens.Length < 8)
-		  throw tokens.Length;
+	   if (tkl < 8)
+		  throw tkl;
 	   int fType = StrToInt(tokens[0]);
 	   unsigned int step = StrToInt(tokens[1]);
 	   unsigned int kernelSize = StrToInt(tokens[2]);
@@ -971,16 +972,16 @@ try {
 	//TODO: gabor filter - simple
 	else if (strProc == "detailenhance")
 	   {
-	   if (tokens.Length < 2)
-		  throw tokens.Length;
+	   if (tkl < 2)
+		  throw tkl;
 	   float sigma_s = StrToFloat(tokens[0], fmt);
 	   float sigma_r = StrToFloat(tokens[1], fmt);
 	   rc = ocvDetailEnhance(sigma_s, sigma_r);
 	   }
 	else if (strProc == "edgepreservingfilter")
 	   {
-	   if (tokens.Length < 3)
-		  throw tokens.Length;
+	   if (tkl < 3)
+		  throw tkl;
 	   int flags = StrToInt(tokens[0]);
 	   float sigma_s = StrToFloat(tokens[1], fmt);
 	   float sigma_r = StrToFloat(tokens[2], fmt);
@@ -988,8 +989,8 @@ try {
 	   }
 	else if (strProc == "pencilsketch")
 	   {
-	   if (tokens.Length < 4)
-		  throw tokens.Length;
+	   if (tkl < 4)
+		  throw tkl;
 	   bool grayscale = StrToBool(tokens[0].Trim());
 	   float sigma_s = StrToFloat(tokens[1], fmt);
 	   float sigma_r = StrToFloat(tokens[2], fmt);
@@ -998,16 +999,16 @@ try {
 	   }
 	else if (strProc == "stylization")
 	   {
-	   if (tokens.Length < 2)
-		  throw tokens.Length;
+	   if (tkl < 2)
+		  throw tkl;
 	   float sigma_s = StrToFloat(tokens[0], fmt);
 	   float sigma_r = StrToFloat(tokens[1], fmt);
 	   rc = ocvStylization(sigma_s, sigma_r);
 	   }
 	else if (strProc == "oilpainting")
 	   {
-	   if (tokens.Length < 2)
-		  throw tokens.Length;
+	   if (tkl < 2)
+		  throw tkl;
 	   int size = StrToInt(tokens[0]);
 	   int dynRatio = StrToInt(tokens[1]);
 	   rc = ocvOilPainting(size, dynRatio);
@@ -1015,8 +1016,8 @@ try {
 	else if (strProc == "styletransfer")
 	   {
 	   // parse parameters
-	   if (tokens.Length < 6)
-		  throw tokens.Length;
+	   if (tkl < 6)
+		  throw tkl;
 	   double scale = StrToFloat(tokens[0], fmt);
 	   double meanR = StrToFloat(tokens[1], fmt);
 	   double meanG = StrToFloat(tokens[2], fmt);
@@ -1028,8 +1029,8 @@ try {
 	else if (strProc == "warppolar")
 	   {
 	   // parse parameters
-	   if (tokens.Length < 5)
-		  throw tokens.Length;
+	   if (tkl < 5)
+		  throw tkl;
 	   int x = StrToInt(tokens[0]);
 	   int y = StrToInt(tokens[1]);
 	   double maxRadius = StrToFloat(tokens[2], fmt);
@@ -1040,8 +1041,8 @@ try {
 	else if (strProc == "features2d")
 	   {
 	   // parse parameters
-	   if (tokens.Length < 1)
-		  throw tokens.Length;
+	   if (tkl < 1)
+		  throw tkl;
 	   int type = StrToInt(tokens[0]);
 	   int choice = 0;
 	   int maxSrcKeys = 0;
@@ -1059,8 +1060,8 @@ try {
 	else if (strProc == "matches2d")
 	   {
 	   // parse parameters
-	   if (tokens.Length < 3)
-		  throw tokens.Length;
+	   if (tkl < 3)
+		  throw tkl;
 	   int type = StrToInt(tokens[0]);
 	   double matchParam = StrToFloat(tokens[1], fmt);
 	   bool exportImage = StrToBool(tokens[2].Trim());
@@ -1069,8 +1070,8 @@ try {
 	else if (strProc == "homography2d")
 	   {
 	   // parse parameters
-	   if (tokens.Length < 5)
-		  throw tokens.Length;
+	   if (tkl < 5)
+		  throw tkl;
 	   unsigned int minMatches = StrToInt(tokens[0]);
 	   int  type    = StrToInt(tokens[1]);
 	   bool exportImage = StrToBool(tokens[2].Trim());
@@ -1081,8 +1082,8 @@ try {
 	else if (strProc == "reducefeatures2d")
 	   {
 	   // parse parameters
-	   if (tokens.Length < 1)
-		  throw tokens.Length;
+	   if (tkl < 1)
+		  throw tkl;
 	   int  type    = StrToInt(tokens[0]);
 	   bool exportMatchImage = false;
 	   if (tokens.Length > 1)
@@ -1092,8 +1093,8 @@ try {
 	else if (strProc == "seamlessclone")
 	   {
 	   // parse parameters
-	   if (tokens.Length < 2)
-		  throw tokens.Length;
+	   if (tkl < 2)
+		  throw tkl;
 	   int centerX = StrToInt(tokens[0]);
 	   int centerY = StrToInt(tokens[1]);
 	   int type = 0;
@@ -1104,8 +1105,8 @@ try {
 	else if (strProc == "inpaint")
 	   {
 	   // parse parameters
-	   if (tokens.Length < 1)
-		  throw tokens.Length;
+	   if (tkl < 1)
+		  throw tkl;
 	   int type = StrToInt(tokens[0]);
 	   double radius = 3.0;
 	   if (tokens.Length > 1)
@@ -1115,24 +1116,24 @@ try {
 	else if (strProc == "colortransfer")
 	   {
 	   // parse parameters
-	   if (tokens.Length != 1)
-		  throw tokens.Length;
+	   if (tkl != 1)
+		  throw tkl;
 	   bool exportImage = StrToBool(tokens[0].Trim());
        rc = ocvColorTransfer(exportImage);
 	   }
 	else if (strProc == "staticsaliency")
 	   {
 	   // parse parameters
-	   if (tokens.Length != 1)
-		  throw tokens.Length;
+	   if (tkl != 1)
+		  throw tkl;
 	   int type = StrToInt(tokens[0].Trim());
 	   rc = ocvStaticSaliency((TSaliencyType)type);
 	   }
 	else if (strProc == "findcontours")
 	   {
 	   // parse parameters
-	   if (tokens.Length != 3)
-		  throw tokens.Length;
+	   if (tkl != 3)
+		  throw tkl;
 	   int edgeType = StrToInt(tokens[0]);
 	   int retMode  = StrToInt(tokens[1]);
 	   int appMode  = StrToInt(tokens[2]);
@@ -1141,8 +1142,8 @@ try {
 	else if (strProc == "floodfillsimple")
 	   {
 	   // parse parameters
-	   if (tokens.Length < 6)
-		  throw tokens.Length;
+	   if (tkl < 6)
+		  throw tkl;
 	   SocvPoint seed;
 	   seed.y = StrToInt(tokens[0]);
 	   seed.x = StrToInt(tokens[1]);
@@ -1203,15 +1204,15 @@ try {
 	   // parse parameters
 	   tokens1 = SplitString(strParams1, ",");
 	   if (tokens1.Length < 3)
-		  throw tokens1.Length;
+		  throw (int)tokens1.Length;
 	   unsigned int kernelSize = StrToInt(tokens1[0]);
 	   unsigned int kernelLength = kernelSize *kernelSize;
 	   float div = StrToFloat(tokens1[1], fmt);
 	   float bias = StrToFloat(tokens1[2], fmt);
 	   // parse kernel
 	   tokens2 = SplitString(strParams2, ",");
-	   if (tokens2.Length <  (int)kernelLength)
-		  throw tokens2.Length;
+	   if ((int)tokens2.Length <  (int)kernelLength)
+		  throw (int)tokens2.Length;
 	   // parse kernel
 	   float kernel[33*33]; // max kernel = 33x33
 	   for (unsigned int i = 0; i < kernelLength; i++)
@@ -1257,7 +1258,7 @@ try {
 	   // parse parameters
 	   tokens2 = SplitString(strParams2, ",");
 	   if (tokens2.Length < 5)
-		  throw tokens2.Length;
+		  throw (int)tokens2.Length;
 	   bool singleFace = StrToBool(tokens2[0].Trim());
 	   bool extrapolate = StrToBool(tokens2[1].Trim());
 	   double scaleFactor = StrToFloat(tokens2[2], fmt);
@@ -1309,7 +1310,7 @@ try {
 	   // parse parameters
 	   tokens3 = SplitString(strParams3, ",");
 	   if (tokens3.Length < 1)
-		  throw tokens3.Length;
+		  throw (int)tokens3.Length;
 	   String cascade_name = strParams1;
 	   String model_name = strParams2;
 	   int model_type = StrToInt(tokens3[0]);

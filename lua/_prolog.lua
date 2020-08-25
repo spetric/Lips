@@ -260,6 +260,17 @@ function lips_ExportImage(image, asWhat, showInHost)
        show = showInHost 
     end
     local lRet = Lua2Host:ExportImage(image.Id, asWhat, show)
+    if (lRet == true) then
+       if (string.lower(asWhat) == "assource") then
+          SourceImage = image
+          -- reset roi
+          SourceRoi = {Left = 0, Right = image.Width - 1, Top = 0, Bottom = image.Height - 1}         
+       elseif (string.lower(asWhat) == "astarget") then
+          TargetImage = image
+          -- reset roi       
+          TargetRoi = {Left = 0, Right = image.Width - 1, Top = 0, Bottom = image.Height - 1}          
+       end
+    end 
     return lRet
 end
 -- export contour

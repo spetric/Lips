@@ -233,7 +233,7 @@ switch (type)
 			TImageCommon::SourceImage = (TLuaImageByte3*)(FSourceImage->luaImage);
 			}
 		 else
-            FSourceImage = 0;
+			FSourceImage = 0;
 		 // delete roi if exists
 		 if (FSourceRoi)
 			{

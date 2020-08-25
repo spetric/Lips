@@ -34,7 +34,7 @@ object frmLips: TfrmLips
       Height = 641
       Align = alClient
       TabOrder = 0
-      Properties.ActivePage = tabLayers
+      Properties.ActivePage = tabNormal
       Properties.CustomButtons.Buttons = <>
       LookAndFeel.NativeStyle = False
       LookAndFeel.SkinName = 'Darkroom'
@@ -45,10 +45,6 @@ object frmLips: TfrmLips
       object tabNormal: TcxTabSheet
         Caption = 'Single image view'
         ImageIndex = 0
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object panSingle: TPanel
           Left = 0
           Top = 0
@@ -137,10 +133,6 @@ object frmLips: TfrmLips
       object tabLayers: TcxTabSheet
         Caption = 'Layers view'
         ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object panLayers: TPanel
           Left = 0
           Top = 0
@@ -333,10 +325,6 @@ object frmLips: TfrmLips
     object cxTabSheet1: TcxTabSheet
       Caption = 'Lua script'
       ImageIndex = 0
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object panCtrls: TPanel
         Left = 0
         Top = 0
@@ -682,10 +670,6 @@ object frmLips: TfrmLips
     object cxTabSheet2: TcxTabSheet
       Caption = 'Settings'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object boxSelection: TcxGroupBox
         Left = 0
         Top = 0

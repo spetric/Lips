@@ -56,7 +56,7 @@ TfrmLips *frmLips;
 __fastcall TfrmLips::TfrmLips(TComponent* Owner)
 	: TForm(Owner)
 {
-Caption = Caption + " 2020.07. ";
+Caption = Caption + " 2020.08. ";
 #ifdef __WIN32__
 	Caption = Caption + " 32-bit";
 #else
@@ -404,6 +404,8 @@ if (FScriptLoaded)
   String params = setParamValues();
   result = lipsExecuteScript(params.c_str());
   }
+else
+  return;
 if (result)
   {
   luaMemo->Text = String(lipsGetLastErrorMessage());
@@ -457,11 +459,15 @@ else
 			 ieViewSingle->RestoreSelection();
 			 }
 		 else
-			 FMapWork->DrawToTIEBitmap(icTgt->Image, 0, 0);
+			 {
+			 if (FMapWork)
+				 FMapWork->DrawToTIEBitmap(icTgt->Image, 0, 0);
+			 }
 		 setIcmv(1, icTgt);
-		 mView->SelectedImage = mView->ImageCount - 1;  // go to last image
-		 mViewImageSelect(this, mView->SelectedImage);
 		 }
+	 // go to last image
+	 mView->SelectedImage = mView->ImageCount - 1;
+	 mViewImageSelect(this, mView->SelectedImage);
 	 }
   ieViewSingle->Update();
   // always delete work map
@@ -484,6 +490,7 @@ listScriptsItemSelected(this, listScripts->SelectedItemIndex);
 // delete all images
 void __fastcall TfrmLips::btnClearAllClick(TObject *Sender)
 {
+ieViewSingle->Deselect();
 deleteImages();
 ieViewSingle->Blank();
 layersMView->AttachedImageEnView = 0;
@@ -1034,7 +1041,7 @@ if (expType == "asSource")
    map = new TIEBitmap(expImage->width, expImage->height, ie24RGB);
    TLipsHelper::CopyExpImage2Bitmap(expImage, map, asIs);
    ieViewSingle->Zoom = 100;
-   ic = static_cast<TImageContainer*>(FImageList->Items[1]);
+   ic = static_cast<TImageContainer*>(FImageList->Items[0]);
    delete ic;
    ic = new TImageContainer(map, "source", -1);   // replace source
    FImageList->Items[0] = ic;
@@ -1391,4 +1398,5 @@ if (chkLayersSB->Checked)
 ieViewLayers->Update();
 }
 //---------------------------------------------------------------------------
+
 

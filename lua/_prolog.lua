@@ -137,7 +137,10 @@ end
 -- Get channels value from an image 
 function lips_GetPixel(image, i, j)
    if (image.Channels == 3) then  
-      return image.Plane[i][j].ch[_chor], image.Plane[i][j].ch[_chog], image.Plane[i][j].ch[_chob] 
+      if (image.Alpha ~= nil) then  
+         return image.Plane[i][j].ch[_chor], image.Plane[i][j].ch[_chog], image.Plane[i][j].ch[_chob], image.Alpha[i][j].ch[0]
+      end
+      return image.Plane[i][j].ch[_chor], image.Plane[i][j].ch[_chog], image.Plane[i][j].ch[_chob]
    else
       return image.Plane[i][j].ch[0]
    end         
@@ -145,15 +148,21 @@ end
 -- Get channels value from an image (safe mode - return zeros if beyond boundaries)
 function lips_GetPixelSafe(image, i, j)   
     if (image.Channels == 3) then
-        if (i < 0 or i >= image.Height or j < 0 or j >= image.Width) then
-          return 0, 0, 0
+      if (i < 0 or i >= image.Height or j < 0 or j >= image.Width) then
+        if (image.Alpha ~= nil) then          
+           return 0, 0, 0, 0
         end
-        return image.Plane[i][j].ch[_chor], image.Plane[i][j].ch[_chog], image.Plane[i][j].ch[_chob]
+      return 0, 0, 0        
+      end
+      if (image.Alpha ~= nil) then  
+         return image.Plane[i][j].ch[_chor], image.Plane[i][j].ch[_chog], image.Plane[i][j].ch[_chob], image.Alpha[i][j].ch[0]
+      end  
+      return image.Plane[i][j].ch[_chor], image.Plane[i][j].ch[_chog], image.Plane[i][j].ch[_chob]
     else
-        if (i < 0 or i >= image.Height or j < 0 or j >= image.Width) then
-          return 0
-        end
-        return image.Plane[i][j].ch[0]      
+      if (i < 0 or i >= image.Height or j < 0 or j >= image.Width) then
+         return 0
+      end
+      return image.Plane[i][j].ch[0]      
     end  
 end
 -- Get channels value from an image (wrap mode - return wrapped values if beyond boundaries)
@@ -167,32 +176,44 @@ function lips_GetPixelWrap(image, i, j)
 	   wrap_j = image.Width +  wrap_j
   end   
   if (image.Channels == 3) then
+    if (image.Alpha ~= nil) then              
       return  image.Plane[wrap_i][wrap_j].ch[_chor],
               image.Plane[wrap_i][wrap_j].ch[_chog],
-              image.Plane[wrap_i][wrap_j].ch[_chob]             
+              image.Plane[wrap_i][wrap_j].ch[_chob],             
+              image.Alpha[wrap_i][wrap_j].ch[0]                           
+    end
+    return  image.Plane[wrap_i][wrap_j].ch[_chor],
+            image.Plane[wrap_i][wrap_j].ch[_chog],
+            image.Plane[wrap_i][wrap_j].ch[_chob]                
   else
       return image.Plane[wrap_i][wrap_j].ch[0]  
   end         
 end
 -- Set channels value for an image
-function lips_SetPixel(image, i, j, v1, v2, v3)
+function lips_SetPixel(image, i, j, v1, v2, v3, ac)
    if (image.Channels == 3) then
       image.Plane[i][j].ch[_chor] = v1
       image.Plane[i][j].ch[_chog] = v2
       image.Plane[i][j].ch[_chob] = v3
+      if (ac ~= nil and image.Alpha ~= nil) then
+          image.Alpha[i][j].ch[0] = ac
+      end
    else
       image.Plane[i][j].ch[0] = v1  
    end         
 end
 -- Set channels value for an image (safe mode)
-function lips_SetPixelSafe(image, i, j, v1, v2, v3)
+function lips_SetPixelSafe(image, i, j, v1, v2, v3, ac)
     if (i < 0 or i >= image.Height or j < 0 or j >= image.Width) then
        return
     end
     if (image.Channels == 3) then  
          image.Plane[i][j].ch[_chor] = v1
          image.Plane[i][j].ch[_chog] = v2
-         image.Plane[i][j].ch[_chob] = v3                   
+         image.Plane[i][j].ch[_chob] = v3   
+      if (ac ~= nil and image.Alpha ~= nil) then
+          image.Alpha[i][j].ch[0] = ac
+      end 
     else
          image.Plane[i][j].ch[0] = v1              
     end

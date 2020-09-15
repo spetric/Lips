@@ -638,6 +638,11 @@ if (strProc == "contour")
 		 }
 	   }
    }
+else if (strProc == "homographydata")
+   {
+   ocvGetHomographyData(FLastHomography);
+   pRet = (void*)(&FLastHomography);
+   }
 return pRet;
 }
 //---------------------------------------------------------------------------

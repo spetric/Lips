@@ -63,6 +63,6 @@ class TImageCommon
 		static void FBRunRGB(spsFastBlur *fbgData);
 		static void BlendWithMask(TLuaImageByte3 *inp, TLuaImageByte1 *mask, TLuaImageByte3 *out, bool alpha);
 		static void DownsampleGray(TLuaImageByte1 *imgIn, TLuaImageByte1 *imgOut);
-		static void TImageCommon::DownsampleRGB(TLuaImageByte3 *imgIn, TLuaImageByte3 *imgOut);
+		static void DownsampleRGB(TLuaImageByte3 *imgIn, TLuaImageByte3 *imgOut);
 };
 #endif

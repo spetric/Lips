@@ -133,6 +133,10 @@ object frmLips: TfrmLips
       object tabLayers: TcxTabSheet
         Caption = 'Layers view'
         ImageIndex = 1
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object panLayers: TPanel
           Left = 0
           Top = 0
@@ -670,6 +674,10 @@ object frmLips: TfrmLips
     object cxTabSheet2: TcxTabSheet
       Caption = 'Settings'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object boxSelection: TcxGroupBox
         Left = 0
         Top = 0

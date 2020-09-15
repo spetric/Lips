@@ -193,7 +193,7 @@ private:	// User declarations
 	bool FMouseEvent2Lua;
     bool FSelectionRoiEnabled;
 	void __fastcall deleteImages(int upto = 0);
-	void __fastcall setIcmv(int idx, TImageContainer *ic);
+	void __fastcall setIcmv(int idx, TLipsImageContainer *ic);
     TIEBitmap* __fastcall getMapFromTag(int tag);
     //
 	void __fastcall checkImageFrames(void);

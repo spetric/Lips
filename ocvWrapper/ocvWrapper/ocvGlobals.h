@@ -54,6 +54,7 @@ enum TInpaintType {OCW_INPAINT_NS = 0, OCW_INPAINT_TELEA, OCW_INPAINT_FUZZY_ONES
 enum TDnnSuperResType {OCW_SUPERRES_ESPCN = 0, OCW_SUPERRES_FSRCNN, OCW_SUPERRES_LAPSRN, OCW_SUPERRES_EDSR};
 enum TSaliencyType {OCW_SALIENCY_FINE_GRAINED = 0, OCW_SALIENCY_SPECTRAL_RESIDUAL};
 enum TFeature2DReduction {OCW_HOSR_OUTLIERS = 0, OCW_HOSR_RKD_ASIS, OCW_HOSR_RKD_ADJUST, OCW_HOSR_TGT_MASK}; // for multiple objects and enhanecment
+enum TRotateMode {OCW_ROTATE_90_CW = 0, OCW_ROTATE_180, OCW_ROTATE_90_CCW};
 // structs
 struct SocvRoi
 {
@@ -107,6 +108,35 @@ struct SocvLineData
 	unsigned int numLines;
 	void *line;
 };
+struct SocvBlobParams
+{
+	unsigned char blobColor; 
+	bool 	filterByArea;
+	bool 	filterByCircularity;
+	bool 	filterByColor;
+	bool 	filterByConvexity; 
+	bool 	filterByInertia; 
+	float 	maxArea; 
+	float 	maxCircularity; 
+	float 	maxConvexity; 
+	float 	maxInertiaRatio; 
+	float 	maxThreshold; 
+	float 	minArea;
+	float 	minCircularity; 
+	float 	minConvexity;
+	float 	minDistBetweenBlobs;
+	float 	minInertiaRatio; 
+	unsigned int minRepeatability;
+	float 	minThreshold; 
+	float 	thresholdStep;
+
+};
+struct SocvBlobData
+{
+	// output data
+	unsigned int numBlobs;
+
+};
 struct SocvHomography
 {
 	TFeature2DType fType;
@@ -119,9 +149,15 @@ struct SocvHomography
 	THomographyType hType;
 	bool exportImage;
 	bool addAlpha;
-	bool warp2SS;
+	bool warpCrop;
 	int matches;
 	int inliers;
 	int outliers;
+	int shiftX;
+	int shiftY;
+	int bbTop;
+	int bbLeft;
+	int bbWidth;
+	int bbHeight;
 };
 

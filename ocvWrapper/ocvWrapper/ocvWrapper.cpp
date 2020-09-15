@@ -29,6 +29,8 @@ static Mat descriptorsSource, descriptorsTarget;
 static std::vector<DMatch> matches;
 // homography matrix
 static Mat homography, homoMask;
+// work image/ alpha
+static Mat workImage, workAlpha;
 // last used homography
 static SocvHomography lastHomography;
 // global vars
@@ -769,6 +771,20 @@ int ocvResize(int width, int height, int flag)
 	resize(imgSource, imgExport, Size(width, height), 0, 0, flag );
 	if (!alphaSource.empty() && gEnableAlpha)
 		resize(alphaSource, alphaExport, Size(width, height), 0, 0, flag );
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - rotate image (90cv, 180, 90ccv)
+//-------------------------------------------------------------------------------------------------
+int ocvRotate(TRotateMode rmode)
+{
+	int nRet = ocvne_checkImgAndRoi();
+	if (nRet)
+		return nRet;
+	alphaExport = Mat();
+	rotate(imgSource, imgExport, (RotateFlags)rmode);
+	if (!alphaSource.empty() && gEnableAlpha)
+		rotate(alphaSource, alphaExport, (RotateFlags)rmode);
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
@@ -1634,7 +1650,7 @@ int ocvCalcMatches(TMatchType type, float matchParam, bool exportImage)
 //-------------------------------------------------------------------------------------------------
 // DLL entry - calculate homography
 //-------------------------------------------------------------------------------------------------
-int ocvCalcHomography(unsigned int minMatches, THomographyType type, bool exportImage, bool addAlpha, bool warp2SS)
+int ocvCalcHomography(unsigned int minMatches, THomographyType type, bool exportImage, bool addAlpha, bool warpCrop)
 {
 	//TODO: check if previous steps are fullfiled
 	// Extract location of good matches
@@ -1677,23 +1693,94 @@ int ocvCalcHomography(unsigned int minMatches, THomographyType type, bool export
 	// Use homography to warp image
 	if (exportImage)
 	{
-		Size size = warp2SS ? imgSource.size() : imgTarget.size();
-		warpPerspective(imgSource, imgExport, homography, size);
+		Size size = imgTarget.size();
+		// calc bounding box
+		std::vector<Point> points;
+		Point pt;
+		// top - left
+		pt.x = 0;
+		pt.y = 0;
+		points.push_back(pt);
+		// bottom - left
+		pt.x = 0;
+		pt.y = imgSource.rows - 1;
+		points.push_back(pt);
+		// bottom - right
+		pt.x = imgSource.cols - 1;
+		pt.y = imgSource.rows - 1;
+		points.push_back(pt);
+		// top - right
+		pt.x = imgSource.cols - 1;
+		pt.y = 0;
+		points.push_back(pt);
+		//
+		Rect bb = TCommonHelper::spComputePerspectiveBoundBox(points, homography);
+		// check for negative values
+		if (bb.x < 0)
+		{
+			bb.width += bb.x;
+			bb.x = 0;
+		}
+		if (bb.y < 0)
+		{
+			bb.height += bb.y;
+			bb.y = 0;
+		}
+		// check for range
+		int over;
+		over = imgTarget.cols - (bb.width + bb.x);
+		if (over < 0)
+			bb.width += over;
+		over = imgTarget.rows - (bb.height + bb.y);		
+		if (over < 0)
+			bb.height += over;
+		lastHomography.bbTop = bb.y;
+		lastHomography.bbLeft = bb.x;
+		lastHomography.bbHeight = bb.height;
+		lastHomography.bbWidth = bb.width;
+		//
+		warpPerspective(imgSource, workImage, homography, size);
 		if (alphaSource.empty())
 		{
 			if (addAlpha)
 			{
 				Mat alpha = Mat(imgSource.rows, imgSource.cols, CV_8UC1, Scalar(255));
-				warpPerspective(alpha, alphaExport, homography, size);
+				warpPerspective(alpha, workAlpha, homography, size);
 			}
 			else
-				alphaExport = Mat();
+				workAlpha = Mat();
 		}
 		else
-			warpPerspective(alphaSource, alphaExport, homography, size);
+			warpPerspective(alphaSource, workAlpha, homography, size);
+		// crop output image
+		if (warpCrop)
+		{
+			lastHomography.shiftX = bb.x; 
+			lastHomography.shiftY = bb.y; 
+			Mat out = Mat(workImage, bb);
+			imgExport = Mat(bb.height, bb.width, workImage.type());
+			out.copyTo(imgExport);
+			if (addAlpha)
+			{
+				out = Mat(workAlpha, bb);
+				alphaExport = Mat(bb.height, bb.width, CV_8UC1);
+				out.copyTo(alphaExport);
+			}
+		}
+		else
+		{
+			lastHomography.shiftX = lastHomography.shiftY = 0;
+			imgExport = workImage;
+			if (addAlpha)
+				alphaExport = workAlpha;
+		}
 	}
 	else
+	{
 		imgExport = Mat();
+		workImage = Mat();
+		workAlpha = Mat();
+	}
 	// save for recalculation
 	lastHomography.minMatches = minMatches;
 	if (lastHomography.initMinMatches == 0)
@@ -1701,7 +1788,7 @@ int ocvCalcHomography(unsigned int minMatches, THomographyType type, bool export
 	lastHomography.hType = type;
 	lastHomography.exportImage = exportImage;
 	lastHomography.addAlpha = addAlpha;
-	lastHomography.warp2SS = warp2SS;
+	lastHomography.warpCrop = warpCrop;
 	lastHomography.inliers = 0;
 	lastHomography.outliers = 0;
 	// get inliers
@@ -1749,9 +1836,11 @@ int ocvReduceFeatures2D(TFeature2DReduction redType, bool exportMatchImage)
 		case  OCW_HOSR_RKD_ADJUST:
 			if (!lastHomography.exportImage)
 				return OCW_ERR_NO_EXPORT;
-			if (imgExport.empty())
+			if (workImage.empty())
 				return OCW_ERR_NO_EXPORT;
-			remRows = TCommonHelper::spReduceKpds(keypointsTarget, descriptorsTarget, alphaExport, 0x00, lastHomography.initMinMatches);
+			if (workAlpha.empty())
+				return OCW_ERR_NO_EXPORT;
+			remRows = TCommonHelper::spReduceKpds(keypointsTarget, descriptorsTarget, workAlpha, 0x00, lastHomography.initMinMatches);
 			if (remRows == 0)
 				return OCW_ERR_EMPTY_DATA;
 			// rule of thumb: we'll change minmatches to 1/4 of previous match ti avoid "stupid" warping
@@ -1783,7 +1872,7 @@ int ocvRecalcHomography(void)
 {
 	if (homoMask.step == 0)
 		return OCW_ERR_EMPTY_DATA;
-	return ocvCalcHomography(lastHomography.minMatches, lastHomography.hType, lastHomography.exportImage, lastHomography.addAlpha, lastHomography.warp2SS);
+	return ocvCalcHomography(lastHomography.minMatches, lastHomography.hType, lastHomography.exportImage, lastHomography.addAlpha, lastHomography.warpCrop);
 }
 //-------------------------------------------------------------------------------------------------
 // DLL entry -  get homography data
@@ -1803,6 +1892,92 @@ int ocvClearFeatures2D(void)
 	keypointsTarget.clear();
 	descriptorsSource = Mat();
 	descriptorsTarget = Mat();
+	workImage = Mat();
+	workAlpha = Mat();
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - simple blob detector
+//-------------------------------------------------------------------------------------------------
+int ocvBlobGetDefaultParams(SocvBlobParams *blobParams)
+{
+	if (blobParams == NULL)
+		return OCW_ERR_BAD_PARAM;
+	SimpleBlobDetector::Params params;
+	blobParams->blobColor = params.blobColor;
+	blobParams->filterByArea = params.filterByArea;
+	blobParams->filterByCircularity = params.filterByCircularity;
+	blobParams->filterByColor = params.filterByColor;
+	blobParams->filterByConvexity = params.filterByConvexity;
+	blobParams->filterByInertia = params.filterByInertia;
+	blobParams->maxArea = params.maxArea;
+	blobParams->maxCircularity = params.maxCircularity;
+	blobParams->maxConvexity = 	params.maxConvexity;
+	blobParams->maxInertiaRatio = params.maxInertiaRatio;
+	blobParams->maxThreshold = params.maxThreshold;
+	blobParams->minArea = 	params.minArea;
+	blobParams->minCircularity = 	params.minCircularity;	
+	blobParams->minConvexity = params.minConvexity;
+	blobParams->minDistBetweenBlobs = 	params.minDistBetweenBlobs;
+	blobParams->minInertiaRatio = 		params.minInertiaRatio;
+	blobParams->minRepeatability = 	params.minRepeatability;
+	blobParams->minThreshold = 	params.minThreshold;
+	blobParams->thresholdStep = 	params.thresholdStep;
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - simple blob detector
+//-------------------------------------------------------------------------------------------------
+int ocvBlobDetector(SocvBlobParams *blobParams, SocvBlobData *blobData, bool drawKpts2Target)
+{
+	int nRet = ocvne_checkImgAndRoi();
+	if (nRet)
+		return nRet;
+	// target image - a copy of source
+	if (imgTarget.empty() && drawKpts2Target)
+		return OCW_ERR_NO_TARGET;
+	// params
+	SimpleBlobDetector::Params params;
+	// Storage for blobs
+	std::vector<KeyPoint> keypoints;
+	// check if we have passed params
+	if (blobParams)
+	{
+		params.blobColor = blobParams->blobColor;
+		params.filterByArea = blobParams->filterByArea;
+		params.filterByCircularity = blobParams->filterByCircularity;
+		params.filterByColor = blobParams->filterByColor;
+		params.filterByConvexity = blobParams->filterByConvexity;
+		params.filterByInertia = blobParams->filterByInertia;
+		params.maxArea = blobParams->maxArea;
+		params.maxCircularity = blobParams->maxCircularity;
+		params.maxConvexity = blobParams->maxConvexity;
+		params.maxInertiaRatio = blobParams->maxInertiaRatio;
+		params.maxThreshold = blobParams->maxThreshold;
+		params.minArea = blobParams->minArea;
+		params.minCircularity = blobParams->minCircularity;
+		params.minConvexity = blobParams->minConvexity;
+		params.minDistBetweenBlobs = blobParams->minDistBetweenBlobs;
+		params.minInertiaRatio = blobParams->minInertiaRatio;
+		params.minRepeatability = blobParams->minRepeatability;
+		params.minThreshold = blobParams->minThreshold;
+		params.thresholdStep = blobParams->thresholdStep;
+	}
+	// detector with params
+	Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create(params);   
+	// convert source to blob
+	Mat imGray;
+	cvtColor(roimSource, imGray, COLOR_BGR2GRAY);
+	// Detect blobs
+	detector->detect( imGray, keypoints);
+	// test
+	KeyPoint kpt;
+	for (size_t i = 0; i < keypoints.size(); i++)
+	{
+		kpt = keypoints[i];
+	}
+	if (drawKpts2Target)
+		drawKeypoints( roimSource, keypoints, roimTarget, Scalar(0, 0, 255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------

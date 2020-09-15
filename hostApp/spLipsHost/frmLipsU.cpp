@@ -132,7 +132,7 @@ TLipsHelper::luaConsole = luaMemo;
 TLipsHelper::luaParamBuilder = luaParamBuilder;
 // connect paramRefresh - where to go on refresh params
 TLipsHelper::luaParamRefresh = luaParamRefresh;
-// connect inportImage - where to go when lua exports image
+// connect importImage - where to go when lua exports image
 TLipsHelper::luaImportImage = luaImportImage;
 // connect importRawData
 TLipsHelper::luaImportRawData = luaImportRawData;
@@ -148,17 +148,17 @@ void __fastcall TfrmLips::itemOpenSTClick(TObject *Sender)
 if (openDialog->Execute())
    {
    deleteImages();
-   TImageContainer *ic;
+   TLipsImageContainer *ic;
    ieViewSingle->Zoom = 100;
    TImageEnIO *ienIO = new TImageEnIO(this);
    ienIO->LoadFromFile(openDialog->FileName);
    // add source image
-   ic = new TImageContainer(new TIEBitmap(ienIO->IEBitmap), "source", -1);
+   ic = new TLipsImageContainer(new TIEBitmap(ienIO->IEBitmap), "source", -1);
    FImageList->Add(ic);    // source
    mView->InsertImage(0);
    setIcmv(0, ic);
    // add target image
-   ic = new TImageContainer(new TIEBitmap(ienIO->IEBitmap), "target", -2);
+   ic = new TLipsImageContainer(new TIEBitmap(ienIO->IEBitmap), "target", -2);
    FImageList->Add(ic);    // target = source copy
    mView->InsertImage(1);
    setIcmv(1, ic);
@@ -176,7 +176,7 @@ void __fastcall TfrmLips::itemOpenSClick(TObject *Sender)
 if (openDialog->Execute())
    {
    deleteImages(2);
-   TImageContainer *ic;
+   TLipsImageContainer *ic;
    ieViewSingle->Zoom = 100;
    TImageEnIO *ienIO = new TImageEnIO(this);
    ienIO->LoadFromFile(openDialog->FileName);
@@ -184,15 +184,15 @@ if (openDialog->Execute())
    if (mView->ImageCount == 0)
 	  {
 	  // add source image
-	  ic = new TImageContainer(new TIEBitmap(ienIO->IEBitmap), "source", -1);
+	  ic = new TLipsImageContainer(new TIEBitmap(ienIO->IEBitmap), "source", -1);
 	  FImageList->Add(ic);    		// source
 	  mView->InsertImage(0);
 	  }
    else
 	  {
-	  ic = static_cast<TImageContainer*>(FImageList->Items[0]);
+	  ic = static_cast<TLipsImageContainer*>(FImageList->Items[0]);
 	  delete ic;
-	  ic = new TImageContainer(new TIEBitmap(ienIO->IEBitmap), "source", -1);
+	  ic = new TLipsImageContainer(new TIEBitmap(ienIO->IEBitmap), "source", -1);
 	  FImageList->Items[0] = ic;    // source
 	  }
    setIcmv(0, ic);
@@ -215,7 +215,7 @@ if (mView->ImageCount == 0)
 if (openDialog->Execute())
    {
    deleteImages(2);
-   TImageContainer *ic;
+   TLipsImageContainer *ic;
    ieViewSingle->Zoom = 100;
    TImageEnIO *ienIO = new TImageEnIO(this);
    ienIO->LoadFromFile(openDialog->FileName);
@@ -223,15 +223,15 @@ if (openDialog->Execute())
    if (mView->ImageCount == 1)
 	  {
 	  // add target image
-	  ic = new TImageContainer(new TIEBitmap(ienIO->IEBitmap), "target", -2);
+	  ic = new TLipsImageContainer(new TIEBitmap(ienIO->IEBitmap), "target", -2);
 	  FImageList->Add(ic);    		// target
 	  mView->InsertImage(1);
 	  }
    else
 	  {
-	  ic = static_cast<TImageContainer*>(FImageList->Items[1]);
+	  ic = static_cast<TLipsImageContainer*>(FImageList->Items[1]);
 	  delete ic;
-	  ic = new TImageContainer(new TIEBitmap(ienIO->IEBitmap), "target", -2);
+	  ic = new TLipsImageContainer(new TIEBitmap(ienIO->IEBitmap), "target", -2);
 	  FImageList->Items[1] = ic;    // target
 	  }
    setIcmv(1, ic);
@@ -394,7 +394,7 @@ luaMemo->Lines->Add("Processing...");
 // set helper var
 TLipsHelper::luaStart = Time();
 // target image (if exists)
-TImageContainer *icTgt = 0;
+TLipsImageContainer *icTgt = 0;
 FExportedAsTarget = false;
 // create lua image structure
 createLipSurface();
@@ -416,7 +416,7 @@ else
   if (FMouseEvent2Lua)
      return;
   if (FImageList->Count > 1)
-	 icTgt = static_cast<TImageContainer*>(FImageList->Items[1]);
+	 icTgt = static_cast<TLipsImageContainer*>(FImageList->Items[1]);
   labStatus->Caption = "Done!";
   String fmtt;
   DateTimeToString(fmtt, "hh::nn:ss.zzz", (Time() - TLipsHelper::luaStart));
@@ -518,7 +518,7 @@ if (ieViewLayers->LayersCount > 1)
 ieViewSingle->SetExternalBitmap(0);
 for (int i = FImageList->Count - 1; i > 0; i--)
 	{
-	TImageContainer *ic = static_cast<TImageContainer*>(FImageList->Items[i]);
+	TLipsImageContainer *ic = static_cast<TLipsImageContainer*>(FImageList->Items[i]);
 	if (ic->Tag < 0)
 	   continue;
 	delete ic;
@@ -586,8 +586,8 @@ switch (pop->Tag)
 		{
 		img_from = mView->SelectedImage;
 		// add new additional image
-		TImageContainer *icFrom = static_cast<TImageContainer*>(FImageList->Items[img_from]);
-		TImageContainer *icTo = new TImageContainer(new TIEBitmap(icFrom->Image), icFrom->Name);
+		TLipsImageContainer *icFrom = static_cast<TLipsImageContainer*>(FImageList->Items[img_from]);
+		TLipsImageContainer *icTo = new TLipsImageContainer(new TIEBitmap(icFrom->Image), icFrom->Name);
 		FImageList->Add(icTo);
 		int pos = mView->AppendImage();
 		setIcmv(pos, icTo);
@@ -599,12 +599,12 @@ switch (pop->Tag)
 		return;
    }
 ieViewSingle->SetExternalBitmap(0);
-TImageContainer *icFrom = static_cast<TImageContainer*>(FImageList->Items[img_from]);
-TImageContainer *icTo   = static_cast<TImageContainer*>(FImageList->Items[img_to]);
+TLipsImageContainer *icFrom = static_cast<TLipsImageContainer*>(FImageList->Items[img_from]);
+TLipsImageContainer *icTo   = static_cast<TLipsImageContainer*>(FImageList->Items[img_to]);
 if (pop->Tag < 10)
    {
 	delete icTo;
-	icTo = new TImageContainer(new TIEBitmap(icFrom->Image), icFrom->Name);
+	icTo = new TLipsImageContainer(new TIEBitmap(icFrom->Image), icFrom->Name);
 	FImageList->Items[img_to] = icTo;
 	setIcmv(img_to, icTo);
 	mView->SelectedImage = img_to;
@@ -632,7 +632,7 @@ void __fastcall TfrmLips::btnLayersMergeClick(TObject *Sender)
 if (MessageDlg("Do you want to merge all layers to new image?", mtConfirmation, TMsgDlgButtons() << mbOK<<mbCancel, 0) != mrOk)
    return;
 // create new image
-TImageContainer *icTo = new TImageContainer(new TIEBitmap(), "merged");
+TLipsImageContainer *icTo = new TLipsImageContainer(new TIEBitmap(), "merged");
 ieViewLayers->LayersSaveMergedTo(icTo->Image);
 FImageList->Add(icTo->Image);
 int save_sel = mView->SelectedImage;
@@ -698,7 +698,7 @@ else
   }
 while (FImageList->Count > upto)
    {
-   TImageContainer *ic = static_cast<TImageContainer*>(FImageList->Items[FImageList->Count - 1]);
+   TLipsImageContainer *ic = static_cast<TLipsImageContainer*>(FImageList->Items[FImageList->Count - 1]);
    delete ic;
    FImageList->Delete(FImageList->Count - 1);
    }
@@ -710,7 +710,7 @@ if (TLipsHelper::luaPushImage)
 }
 //---------------------------------------------------------------------------
 // set ic image to mview
-void __fastcall TfrmLips::setIcmv(int idx, TImageContainer *ic)
+void __fastcall TfrmLips::setIcmv(int idx, TLipsImageContainer *ic)
 {
 mView->SetImage(idx, ic->Image);
 mView->ImageTag[idx] = ic->AddrTag;
@@ -722,7 +722,7 @@ TIEBitmap* __fastcall TfrmLips::getMapFromTag(int tag)
 {
 for (int i = 0; i < FImageList->Count; i++)
 	{
-	TImageContainer *ic = static_cast<TImageContainer*>(FImageList->Items[i]);
+	TLipsImageContainer *ic = static_cast<TLipsImageContainer*>(FImageList->Items[i]);
 	if (tag == ic->AddrTag)
 	   return ic->Image;
 	}
@@ -782,9 +782,9 @@ void __fastcall TfrmLips::createLipSurface(void)
 // create and fill lua structure that will be passed to lua prolog function
 int w, h;
 void *alpha;
-TImageContainer* icSrc, *icTgt;
+TLipsImageContainer* icSrc, *icTgt;
 // source image
-icSrc = static_cast<TImageContainer*>(FImageList->Items[0]);
+icSrc = static_cast<TLipsImageContainer*>(FImageList->Items[0]);
 w = icSrc->Image->Width;
 h = icSrc->Image->Height;
 alpha = 0;
@@ -794,7 +794,7 @@ lipsSetSourceImage(icSrc->Image->ScanLine[h - 1], alpha, w, h, 4);
 if (FImageList->Count > 1)
    {
    // target image
-   icTgt = static_cast<TImageContainer*>(FImageList->Items[1]);
+   icTgt = static_cast<TLipsImageContainer*>(FImageList->Items[1]);
    // copy to temporary image
    FMapWork = new TIEBitmap(icTgt->Image);
    w = FMapWork->Width;
@@ -1035,15 +1035,15 @@ void __fastcall TfrmLips::luaImportImage(TExportImage *expImage, bool asIs, bool
 {
 String expType = String(expImage->exptype);
 TIEBitmap *map;
-TImageContainer *ic;
+TLipsImageContainer *ic;
 if (expType == "asSource")
    {
    map = new TIEBitmap(expImage->width, expImage->height, ie24RGB);
    TLipsHelper::CopyExpImage2Bitmap(expImage, map, asIs);
    ieViewSingle->Zoom = 100;
-   ic = static_cast<TImageContainer*>(FImageList->Items[0]);
+   ic = static_cast<TLipsImageContainer*>(FImageList->Items[0]);
    delete ic;
-   ic = new TImageContainer(map, "source", -1);   // replace source
+   ic = new TLipsImageContainer(map, "source", -1);   // replace source
    FImageList->Items[0] = ic;
    setIcmv(0, ic);
    }
@@ -1056,16 +1056,16 @@ else if (expType == "asTarget") // new target image
    if (mView->ImageCount == 1)
 	  {
 	  // add target image
-	  ic = new TImageContainer(map, "target", -2);
+	  ic = new TLipsImageContainer(map, "target", -2);
 	  FImageList->Add(ic);    		// target
 	  mView->InsertImage(1);
 	  setIcmv(1, ic);
 	  }
    else
 	  {
-	  ic = static_cast<TImageContainer*>(FImageList->Items[1]);
+	  ic = static_cast<TLipsImageContainer*>(FImageList->Items[1]);
 	  delete ic;
-	  ic = new TImageContainer(map, "target", -2);   // replace target
+	  ic = new TLipsImageContainer(map, "target", -2);   // replace target
 	  FImageList->Items[1] = ic;
 	  FExportedAsTarget = true;
 	  }
@@ -1076,7 +1076,7 @@ else
    TLipsHelper::CopyExpImage2Bitmap(expImage, map, asIs);
    ieViewSingle->Zoom = 100;
    // append image
-   ic = new TImageContainer(map, expType);
+   ic = new TLipsImageContainer(map, expType);
    FImageList->Add(ic);    		// new image
    if (show)
 	  {
@@ -1233,16 +1233,16 @@ if (sCmd == "layeradd" || sCmd == "layerbackground")
    TIEBitmap *map = 0;
    tokens[0] = tokens[0].Trim();
    if (tokens[0] == "source")
-	   map = static_cast<TImageContainer*>(FImageList->Items[0])->Image;
+	   map = static_cast<TLipsImageContainer*>(FImageList->Items[0])->Image;
    else if (tokens[0] == "target" && FImageList->Count > 1)
-	   map = static_cast<TImageContainer*>(FImageList->Items[1])->Image;
+	   map = static_cast<TLipsImageContainer*>(FImageList->Items[1])->Image;
    else if (tokens[0] == "last" && FImageList->Count > 0)
-	   map = static_cast<TImageContainer*>(FImageList->Items[FImageList->Count - 1])->Image;
+	   map = static_cast<TLipsImageContainer*>(FImageList->Items[FImageList->Count - 1])->Image;
    else  // by id
 	   {
 	   try {
 		   int idx = StrToInt(tokens[0]);
-		   map = static_cast<TImageContainer*>(FImageList->Items[idx])->Image;
+		   map = static_cast<TLipsImageContainer*>(FImageList->Items[idx])->Image;
 		   }
 	   catch (...)
 		   {
@@ -1256,6 +1256,10 @@ if (sCmd == "layeradd" || sCmd == "layerbackground")
 		 ieViewLayers->LayersAdd(map); 				// test - not shared
 		 ieViewLayers->CurrentLayer->PosX = 0;
 		 ieViewLayers->CurrentLayer->PosY = 0;
+		 if (tokens.Length > 1)
+			ieViewLayers->CurrentLayer->PosX = StrToInt(tokens[1].Trim());
+		 if (tokens.Length > 2)
+			ieViewLayers->CurrentLayer->PosY = StrToInt(tokens[2].Trim());
 		 }
 	  else
 		 {
@@ -1265,6 +1269,13 @@ if (sCmd == "layeradd" || sCmd == "layerbackground")
 	  }
    else
 	  return false;
+   }
+else if (sCmd == "layerpos")
+   {
+   if (tokens.Length < 2)
+	  return false;
+   ieViewLayers->CurrentLayer->PosX = StrToInt(tokens[0]);
+   ieViewLayers->CurrentLayer->PosY = StrToInt(tokens[1]);
    }
 else if (sCmd == "layerclearall")
    {

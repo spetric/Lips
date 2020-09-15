@@ -30,7 +30,8 @@ private:
 	TOpenCV FOpenCV;
 	int FDKIdx;
 	SocvContourData FExportContours;
-    SocvContourPts *FCurrentContour;
+	SocvContourPts *FCurrentContour;
+    SocvHomography FLastHomography;
 	void clearData(TClearType type);
 protected:
 public:

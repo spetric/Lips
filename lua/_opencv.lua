@@ -1,8 +1,15 @@
 -- initialize data structures
+-- call only once if needed
 function ocv_InitFFI()
-    -- contour data - call only once if needed
+  -- contour data
   ffi.cdef[[typedef struct {int x; int y;} SocvPoint;]]  
   ffi.cdef[[typedef struct {int hierarchy[4]; unsigned int numPts; SocvPoint *points;} SocvContourPts;]] 
+  -- homography data
+  ffi.cdef[[typedef struct {int fType;	int  maxSrcKeys;	int  maxTgtKeys;	int mType;
+            float matchParam;	unsigned int initMinMatches;	unsigned int minMatches;
+            int hType;	bool exportImage;	bool addAlpha;	bool warpCrop;	int matches;
+            int inliers;	int outliers;	int shiftX;	int shiftY;
+            int bbTop;	int bbLeft;	int bbWidth;	int bbHeight;} SocvHomography;]]
 end
 -- set image (source, target, interm1...
 function ocv_SetImage(setName, image)
@@ -102,4 +109,13 @@ function ocv_FlipExport(...)
       flag = arg[1]
   end  
   return ocv_Process("__flip", "export", flag)      
+end
+-- get homography data
+function ocv_GetLastHomography()
+  local homography = Lua2Host:OpenCVGet("HomographyData", "ptr")
+  local retHomography = nil
+  if (homography ~= nil) then
+      retHomography = ffi.cast("SocvHomography*", homography) 
+  end 
+  return retHomography
 end

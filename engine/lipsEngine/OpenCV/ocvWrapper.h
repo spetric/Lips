@@ -54,6 +54,7 @@ extern "C" OCV_API int ocvWarpAffine(const SocvTuple *wparams, bool exportImage 
 extern "C" OCV_API int ocvFlip(int flipCode);
 extern "C" OCV_API int ocvFlipInplace(int flipCode, TImgSelect iSel);
 extern "C" OCV_API int ocvResize(int width, int height, int flag);
+extern "C" OCV_API int ocvRotate(TRotateMode rmode = OCW_ROTATE_90_CCW);
 // image npr
 extern "C" OCV_API int ocvDetailEnhance(float sigma_s = 10,	float sigma_r = 0.15f);
 extern "C" OCV_API int ocvEdgePreservingFilter(int flags = 1, float sigma_s = 60, float sigma_r = 0.4f);
@@ -78,11 +79,14 @@ extern "C" OCV_API int ocvTrigonometrius(int fType = OCW_KF_COS, unsigned int st
 // feature detection
 extern "C" OCV_API int ocvCalcFeatures2D(TFeature2DType type = OCW_FD_AKAZE,  TFeature2DChoice choice = OCW_FCH_SRCTGT, int maxSrcKeys = 0, int maxTgtKeys = 0);
 extern "C" OCV_API int ocvCalcMatches(TMatchType type = OCW_MT_BRUTE_HAMMING, float matchParam = 0.15f, bool exportImage = true);
-extern "C" OCV_API int ocvCalcHomography(unsigned int MinMatches = 6, THomographyType type = OCW_HOMO_RANSAC, bool exportImage = true, bool addAlpha = true, bool warp2SS = false);
+extern "C" OCV_API int ocvCalcHomography(unsigned int MinMatches = 6, THomographyType type = OCW_HOMO_RANSAC, bool exportImage = true, bool addAlpha = true, bool warpCrop = false);
 extern "C" OCV_API int ocvReduceFeatures2D(TFeature2DReduction redType = OCW_HOSR_OUTLIERS, bool exportMatchImage = false);
 extern "C" OCV_API int ocvRecalcHomography(void);
 extern "C" OCV_API int ocvGetHomographyData(SocvHomography &homoData);
 extern "C" OCV_API int ocvClearFeatures2D(void);
+// blob detector
+extern "C" OCV_API int ocvBlobGetDefaultParams(SocvBlobParams *blobParams);
+extern "C" OCV_API int ocvBlobDetector(SocvBlobParams *blobParams, SocvBlobData *blobData, bool drawKpts2Target = true);
 // extra features
 extern "C" OCV_API int ocvInpaint(TInpaintType type = OCW_INPAINT_NS, double radius = 3.0);
 // test

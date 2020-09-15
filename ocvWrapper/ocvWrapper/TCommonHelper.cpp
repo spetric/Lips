@@ -232,4 +232,32 @@ int TCommonHelper::spReduceKpds(vector<KeyPoint> &kpts, Mat &descs, Mat &mask, u
 		}
 	return remRows;
 }
+//-------------------------------------------------------------------------------------------------
+// calculate bounding box
+cv::Rect TCommonHelper::spComputePerspectiveBoundBox(const std::vector<cv::Point> & points, const cv::Mat & homography)
+{
+    std::vector<cv::Point2f> transformed_points(points.size());
+
+    for (size_t i = 0; i < points.size(); i++)
+    {
+        // warp the points
+        transformed_points[i].x = points[i].x * homography.at<double>(0,0) + points[i].y * homography.at<double>(0,1) + homography.at<double>(0,2) ;
+        transformed_points[i].y = points[i].x * homography.at<double>(1,0) + points[i].y * homography.at<double>(1,1) + homography.at<double>(1,2) ;
+    }
+
+    // dehomogenization 
+    if(homography.rows == 3)
+    {
+        float homog_comp;
+        for (size_t i = 0; i < transformed_points.size(); i++)
+        {
+            homog_comp = points[i].x * homography.at<double>(2,0) + points[i].y * homography.at<double>(2,1) + homography.at<double>(2,2) ;
+            transformed_points[i].x /= homog_comp;
+            transformed_points[i].y /= homog_comp;
+        }
+    }
+    // bounding box
+    Rect bb = boundingRect(transformed_points);
+    return bb;
+}
 

@@ -47,21 +47,21 @@ class TLipsHelper
 	static void CopyExpImage2Bitmap(TExportImage *data, TIEBitmap *bmp, bool AsIs);
 };
 //---------------------------------------------------------------------------
-class TImageContainer
+class TLipsImageContainer
 	{
 	public:
 		TIEBitmap *Image;
-        String Name;
+		String Name;
 		int Tag;
 		int AddrTag;
-		TImageContainer(TIEBitmap *image, String name = "", int tag = 0)
+		TLipsImageContainer(TIEBitmap *image, String name = "", int tag = 0)
 		{
 			Image = image;
 			Tag = tag;
-            Name = name;
-            AddrTag = (int)Image;
+			Name = name;
+			AddrTag = (int)Image;
 		}
-		~TImageContainer()
+		~TLipsImageContainer()
 		{
 			delete Image;
 			Image = 0;

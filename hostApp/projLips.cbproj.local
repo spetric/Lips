@@ -1,21 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>1899.12.30 00:00:00.000.037,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.131,D:\petra\pixopediaXE3264\Unit1.cpp=D:\petra\pixopediaXE3264\spLipsHost\frames\FrameImageSliderU.cpp</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.667,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.067,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.131,D:\petra\pixopediaXE3264\Unit1.cpp=D:\petra\pixopediaXE3264\spLipsHost\frames\FrameImageSliderU.cpp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.730,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.653,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.918,D:\petra\pixopediaXE3264\spLipsHost\frmDownloadU.h=D:\petra\pixopediaXE3264\spLipsHost\lipsDownload.h</Transaction>
     <Transaction>1899.12.30 00:00:00.000.606,=D:\Users\spetric\Documents\Embarcadero\Studio\Projects\Project1PCH1.h</Transaction>
     <Transaction>1899.12.30 00:00:00.000.301,D:\petra\pixopediaXE3264\spLipsHost\frames\FrameImageComboU.h=D:\petra\pixopediaXE3264\Unit1.h</Transaction>
     <Transaction>1899.12.30 00:00:00.000.040,D:\petra\pixopediaXE3264\spLipsHost\frames\FrameShellComboBoxU.cpp=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.730,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.667,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.971,D:\petra\pixopediaXE3264\Unit1.cpp=D:\petra\pixopediaXE3264\spLipsHost\frames\FrameComboBoxU.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.442,D:\petra\pixopediaXE3264\Unit1.cpp=D:\petra\pixopediaXE3264\spLipsHost\frmDownloadU.cpp</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.653,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.711,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.460,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.976,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.250,D:\petra\pixopediaXE3264\Unit1.cpp=D:\petra\pixopediaXE3264\spLip\frames\FrameSliderU.cpp</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.703,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.037,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.908,D:\petra\pixopediaXE3264\Unit1.cpp=D:\petra\pixopediaXE3264\spLipsHost\DownloadThread.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.568,D:\petra\pixopediaXE3264\Unit1.cpp=D:\petra\pixopediaXE3264\spLip\frames\FrameCheckBoxU.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.349,=D:\Users\spetric\Documents\Embarcadero\Studio\Projects\Project1PCH1.h</Transaction>
@@ -30,16 +30,16 @@
     <Transaction>1899.12.30 00:00:00.000.131,D:\petra\pixopediaXE3264\Unit1.dfm=D:\petra\pixopediaXE3264\spLipsHost\frames\FrameImageSliderU.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.771,D:\petra\pixopediaXE3264\spLip\frmLipsU.cpp=D:\petra\pixopediaXE3264\spLip\frmLipU.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.301,D:\petra\pixopediaXE3264\spLipsHost\frames\FrameImageComboU.cpp=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.321,=D:\petra\pixopediaXE3264\Win64\Debug\lipsEngine.a</Transaction>
     <Transaction>1899.12.30 00:00:00.000.584,D:\petra\pixopediaXE3264\Win64\Debug\lipsEngine.a=</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.321,=D:\petra\pixopediaXE3264\Win64\Debug\lipsEngine.a</Transaction>
     <Transaction>1899.12.30 00:00:00.000.971,D:\petra\pixopediaXE3264\Unit1.dfm=D:\petra\pixopediaXE3264\spLipsHost\frames\FrameComboBoxU.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.442,D:\petra\pixopediaXE3264\Unit1.dfm=D:\petra\pixopediaXE3264\spLipsHost\frmDownloadU.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.568,D:\petra\pixopediaXE3264\Unit1.dfm=D:\petra\pixopediaXE3264\spLip\frames\FrameCheckBoxU.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.250,D:\petra\pixopediaXE3264\Unit1.dfm=D:\petra\pixopediaXE3264\spLip\frames\FrameSliderU.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.133,D:\petra\pixopediaXE3264\spLipsHost\frames\FrameListBoxU.cpp=D:\petra\pixopediaXE3264\spLipsHost\frames\FrameListBox.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.771,D:\petra\pixopediaXE3264\spLip\frmLipsU.h=D:\petra\pixopediaXE3264\spLip\frmLipU.h</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.040,D:\petra\pixopediaXE3264\spLipsHost\frames\FrameShellComboBoxU.dfm=D:\petra\pixopediaXE3264\Unit1.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.946,D:\petra\pixopediaXE3264\spLipsHost\frames\FrameImageU.dfm=D:\petra\pixopediaXE3264\Unit1.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.040,D:\petra\pixopediaXE3264\spLipsHost\frames\FrameShellComboBoxU.dfm=D:\petra\pixopediaXE3264\Unit1.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.442,D:\petra\pixopediaXE3264\Unit1.h=D:\petra\pixopediaXE3264\spLipsHost\frmDownloadU.h</Transaction>
     <Transaction>1899.12.30 00:00:00.000.250,D:\petra\pixopediaXE3264\Unit1.h=D:\petra\pixopediaXE3264\spLip\frames\FrameSliderU.h</Transaction>
     <Transaction>1899.12.30 00:00:00.000.131,D:\petra\pixopediaXE3264\Unit1.h=D:\petra\pixopediaXE3264\spLipsHost\frames\FrameImageSliderU.h</Transaction>
@@ -58,10 +58,10 @@
     <Transaction>1899.12.30 00:00:00.000.918,D:\petra\pixopediaXE3264\spLipsHost\frmDownloadU.dfm=D:\petra\pixopediaXE3264\spLipsHost\lipsDownload.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.133,D:\petra\pixopediaXE3264\spLipsHost\frames\FrameListBoxU.dfm=D:\petra\pixopediaXE3264\spLipsHost\frames\FrameListBox.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.205,D:\petra\pixopediaXE3264\projLipsPCH1.h=D:\petra\pixopediaXE3264\projLipPCH1.h</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.460,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.976,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.985,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.517,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.711,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.703,=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
     <Transaction>1899.12.30 00:00:00.000.823,D:\petra\pixopediaXE3264\spLipsHost\frames\FrameListBox.h=D:\petra\pixopediaXE3264\Unit1.h</Transaction>
     <Transaction>1899.12.30 00:00:00.000.559,D:\petra\pixopediaXE3264\spLipsHost\DownloadThread.cpp=</Transaction>
     <Transaction>1899.12.30 00:00:00.000.823,D:\petra\pixopediaXE3264\spLipsHost\frames\FrameListBox.cpp=D:\petra\pixopediaXE3264\Unit1.cpp</Transaction>
@@ -118,7 +118,7 @@
     <File Path="spLipsHost\lipsHelper.cpp"/>
     <File Path="spLipsHost\lipsHelper.cpp"/>
     <File Path="spLipsHost\lipsHelper.h"/>
-    <File Path="projLipsPCH1.h"/>
     <File Path="projLips.cpp"/>
+    <File Path="projLipsPCH1.h"/>
   </ProjectSortOrder>
 </BorlandProject>

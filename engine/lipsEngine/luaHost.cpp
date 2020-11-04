@@ -640,8 +640,13 @@ if (strProc == "contour")
    }
 else if (strProc == "homographydata")
    {
-   ocvGetHomographyData(FLastHomography);
+   ocvOdGetHomographyData(FLastHomography);
    pRet = (void*)(&FLastHomography);
+   }
+else if (strProc == "templateposition")
+   {
+   ocvTmGetData(FTemplData);
+   pRet = (void*)(&FTemplData);
    }
 return pRet;
 }
@@ -674,13 +679,25 @@ try {
 	   rc =	ocvReleaseContours(&FExportContours);
 	   FExportContours.numContours = 0;
 	   }
-	else if (strProc == "clearfeatures2d")
-	   {
-	   rc =	ocvClearFeatures2D();
-	   }
 	else if (strProc == "recalchomography2d")
 	   {
-	   rc = ocvRecalcHomography();
+	   rc = ocvOdRecalcHomography();
+	   }
+	else if (strProc == "objdetectorbegin")
+	   {
+	   rc = ocvOdBegin();
+	   }
+	else if (strProc == "objdetectorend")
+	   {
+	   rc = ocvOdEnd();
+	   }
+	else if (strProc == "templatebegin")
+	   {
+	   rc = ocvTmBegin();
+	   }
+	else if (strProc == "templateend")
+	   {
+	   rc = ocvTmEnd();
 	   }
 	else
 	   {
@@ -1060,7 +1077,7 @@ try {
 		   maxTgtKeys = StrToInt(tokens[3].Trim());
 	   // maxSrcKeys and maxTgtKeys represent max numbe of keys to retain after detector is executed.
        // used for algorithms when separeted detection and compute is needed.
-	   rc = ocvCalcFeatures2D((TFeature2DType)type, (TFeature2DChoice)choice, maxSrcKeys, maxTgtKeys);
+	   rc = ocvOdCalcFeatures((TFeature2DType)type, (TFeature2DChoice)choice, maxSrcKeys, maxTgtKeys);
 	   }
 	else if (strProc == "matches2d")
 	   {
@@ -1070,7 +1087,7 @@ try {
 	   int type = StrToInt(tokens[0]);
 	   double matchParam = StrToFloat(tokens[1], fmt);
 	   bool exportImage = StrToBool(tokens[2].Trim());
-	   rc = ocvCalcMatches((TMatchType)type, matchParam, exportImage);
+	   rc = ocvOdCalcMatches((TMatchType)type, matchParam, exportImage);
 	   }
 	else if (strProc == "homography2d")
 	   {
@@ -1082,7 +1099,7 @@ try {
 	   bool exportImage = StrToBool(tokens[2].Trim());
 	   bool addAlpha = StrToBool(tokens[3].Trim());
 	   bool warp2SS = StrToBool(tokens[4].Trim());
-	   rc = ocvCalcHomography(minMatches, (THomographyType)type, exportImage, addAlpha, warp2SS);
+	   rc = ocvOdCalcHomography(minMatches, (THomographyType)type, exportImage, addAlpha, warp2SS);
 	   }
 	else if (strProc == "reducefeatures2d")
 	   {
@@ -1093,7 +1110,7 @@ try {
 	   bool exportMatchImage = false;
 	   if (tokens.Length > 1)
 		  exportMatchImage = StrToBool(tokens[1].Trim());
-	   rc = ocvReduceFeatures2D((TFeature2DReduction)type, exportMatchImage);
+	   rc = ocvOdReduceFeatures((TFeature2DReduction)type, exportMatchImage);
 	   }
 	else if (strProc == "seamlessclone")
 	   {
@@ -1167,6 +1184,64 @@ try {
 		  }
 	   else
 		  rc =	ocvFloodFillSimple(seed, tolLo, tolHi, connectivity, fillMode);
+	   }
+	else if (strProc == "clusterizetarget")
+	   {
+	   // parse parameters
+	   int clusterNum;
+	   if (tkl == 1)
+		  {
+		  clusterNum = StrToInt(tokens[0]);
+		  rc = ocvOdClusterizeFeatures(clusterNum);
+		  }
+	   else
+		  {
+		  int maxIters = 10;
+		  double epsilon = 0.1;
+		  int attempts = 3;
+		  bool flagKpp = true;
+		  maxIters = StrToInt(tokens[1]);
+		  if (tkl > 2)
+			  epsilon = StrToFloat(tokens[2]);
+		  if (tkl > 3)
+			  attempts = StrToInt(tokens[3]);
+		  if (tkl > 4)
+              flagKpp = StrToBool(tokens[4]);
+		  rc =	ocvOdClusterizeFeatures(clusterNum, true, maxIters, epsilon, attempts, flagKpp);
+		  }
+	   }
+	else if (strProc == "templatematchfirst")
+	   {
+	   // parse parameters
+	   int tmm = (int)OCW_TEMPLMODE_CCORR_NORMED;
+	   if (tkl > 0)
+		  tmm = StrToInt(tokens[0]);
+	   rc =	ocvTmMatchFirst((TTemplateMatchingModes) tmm);
+	   }
+	else if (strProc == "templatematchnext")
+	   {
+	   // parse parameters
+	   int trt = (int)OCW_TEMPLREDUCT_MDIST;
+	   double thresh = 0.9;
+	   int mdist = 0;
+	   if (tkl > 0)
+		  trt = StrToInt(tokens[0]);
+	   if (tkl > 1)
+		  thresh = StrToFloat(tokens[1], fmt);
+	   if (tkl > 2)
+		  mdist = StrToInt(tokens[2]);
+	   rc =	ocvTmMatchNext((TTemplateReduction)trt, thresh, mdist);
+	   }
+	else if (strProc == "homographynorm")
+	   {
+	   // parse parameters
+	   int nt = (int)OCW_NORM_L2;
+	   bool cv2gray = false;
+	   if (tkl > 0)
+		  nt = StrToInt(tokens[0]);
+	   if (tkl > 1)
+          cv2gray = StrToBool(tokens[1]);
+	   rc =	ocvOdCalcNorm((TNormType) nt, cv2gray);
 	   }
 	else
 	   {

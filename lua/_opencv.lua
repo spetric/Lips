@@ -9,7 +9,9 @@ function ocv_InitFFI()
             float matchParam;	unsigned int initMinMatches;	unsigned int minMatches;
             int hType;	bool exportImage;	bool addAlpha;	bool warpCrop;	int matches;
             int inliers;	int outliers;	int shiftX;	int shiftY;
-            int bbTop;	int bbLeft;	int bbWidth;	int bbHeight;} SocvHomography;]]
+            int bbTop;	int bbLeft;	int bbWidth;	int bbHeight; double stNorm;} SocvHomography;]]
+  -- template data
+  ffi.cdef[[typedef struct {int posX; int posY; double minVal; double maxVal; bool valid;} SocvTemplateData;]]
 end
 -- set image (source, target, interm1...
 function ocv_SetImage(setName, image)
@@ -118,4 +120,13 @@ function ocv_GetLastHomography()
       retHomography = ffi.cast("SocvHomography*", homography) 
   end 
   return retHomography
+end
+-- get template position
+function ocv_GetTemplateData()
+  local templ = Lua2Host:OpenCVGet("TemplatePosition", "ptr")
+  local retTemplate = nil
+  if (templ ~= nil) then
+      retTemplate = ffi.cast("SocvTemplateData*", templ) 
+  end 
+  return retTemplate
 end

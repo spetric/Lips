@@ -13,6 +13,8 @@
 #include "opencv2/saliency.hpp"
 #include "TCommonHelper.h"
 #include "ocvDataKeeper.h"
+#include "ocvObjDetect.h"
+#include "ocvTemplateMatcher.h"
 #include "imageDiff.h"
 using namespace cv;
 // global objects
@@ -22,17 +24,10 @@ static Rect roiSource, roiTarget;		// roi rectangles
 static Mat roimSource, roimTarget;	    // roi image Mats
 static Mat roalInput, roalOutput;		// roi alpha Mats
 static std::vector<TocvDataKeeper*> dataKeeperList;
-// Variables to store keypoints and descriptors
-static std::vector<KeyPoint> keypointsSource, keypointsTarget;
-static Mat descriptorsSource, descriptorsTarget;
-// Match features
-static std::vector<DMatch> matches;
-// homography matrix
-static Mat homography, homoMask;
+static TocvObjDetect *objDetector;
+static TocvTemplateMatcher *objTemplate;
 // work image/ alpha
-static Mat workImage, workAlpha;
-// last used homography
-static SocvHomography lastHomography;
+//static Mat workImage, workAlpha;
 // global vars
 static bool gEnableAlpha;
 // output structures
@@ -107,6 +102,8 @@ int ocvInit(void)
 {
 	//TODO: check for DLLs (-> delay loaded)
 	gEnableAlpha = true;
+	objDetector = 0;
+	objTemplate = 0;
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
@@ -120,6 +117,10 @@ int ocvClean(void)
 		delete dk;
 		dataKeeperList.pop_back();
 	}
+	if (objDetector)
+		delete objDetector;
+	if (objTemplate)
+		delete objTemplate;
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
@@ -1411,489 +1412,154 @@ int ocvTrigonometrius(int kFunc, unsigned int step, unsigned int kernelSize, dou
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
-// DLL entry - features2d detect and compute
+// DLL entry - createn obj detector
 //-------------------------------------------------------------------------------------------------
-int ocvCalcFeatures2D(TFeature2DType type, TFeature2DChoice choice, int maxSrcKeys, int maxTgtKeys)
+int ocvOdBegin(void)
 {
 	int nRet = ocvne_checkImgAndRoi();
 	if (nRet)
 		return nRet;
-	// TODO: create feature matching/homography class
-	bool src = false, tgt = false, sm = false, tm = false;
-	Mat maskSrc = Mat();
-	Mat maskTgt = Mat();
-	switch (choice)
-	{
-		case OCW_FCH_SRC:
-		case OCW_FCH_SRC_MASK:
-			src = true;
-			keypointsSource.clear();
-			descriptorsSource = Mat();
-			sm = (choice == OCW_FCH_SRC_MASK && !maskSource.empty());
-			break;
-		case OCW_FCH_TGT:
-		case OCW_FCH_TGT_MASK:
-			tgt = true;
-			keypointsTarget.clear();
-			descriptorsTarget = Mat();
-			tm = (choice == OCW_FCH_TGT_MASK && !maskTarget.empty());
-			break;
-		default:
-			src = true;
-			tgt = true;
-			ocvClearFeatures2D();
-			sm = (choice == OCW_FCH_SRCTGT_MASK && !maskSource.empty());
-			tm = (choice == OCW_FCH_SRCTGT_MASK && !maskTarget.empty());
-			break;
-	}
-	if (sm)
-	{
-		if (maskSource.rows == roimSource.rows && maskSource.cols == roimSource.cols)
-			maskSrc = maskSource;
-	}
-	if (tm)
-	{
-		if (maskTarget.rows == roimTarget.rows && maskTarget.cols == roimTarget.cols)
-			maskTgt = maskTarget;
-	}
-	//
-	Mat imSourceGray = Mat(roimSource.rows, roimSource.cols, CV_8UC1);
-	Mat imTargetGray = Mat(roimTarget.rows, roimTarget.cols, CV_8UC1);
-	cvtColor(imgSource, imSourceGray, COLOR_BGR2GRAY);
-	cvtColor(imgTarget, imTargetGray, COLOR_BGR2GRAY);
-	switch (type)
-		{
-		case OCW_FD_AKAZE:
-			{
-			Ptr<AKAZE> fdt = AKAZE::create();
-			if (src)
-				fdt->detectAndCompute(imSourceGray, maskSrc, keypointsSource, descriptorsSource);
-			if (tgt)
-				fdt->detectAndCompute(imTargetGray, maskTgt, keypointsTarget, descriptorsTarget);
-			}	
-			break;
-		case OCW_FD_ORB:
-			{
-			Ptr<Feature2D> fdt = ORB::create(1000);
-			if (src)
-				fdt->detectAndCompute(imSourceGray, maskSrc, keypointsSource, descriptorsSource);
-			if (tgt)
-				fdt->detectAndCompute(imTargetGray, maskTgt, keypointsTarget, descriptorsTarget);
-			}
-			break;
-		case OCW_FD_BRISK:
-			{
-			Ptr<BRISK> fdt = BRISK::create();
-			if (src)
-				fdt->detectAndCompute(imSourceGray, maskSrc, keypointsSource, descriptorsSource);
-			if (tgt)
-				fdt->detectAndCompute(imTargetGray, maskTgt, keypointsTarget, descriptorsTarget);
-			}
-			break;
-		case OCW_FD_KAZE:
-			{
-			Ptr<KAZE> fdt = KAZE::create();
-			if (src)
-				fdt->detectAndCompute(imSourceGray, maskSrc, keypointsSource, descriptorsSource);
-			if (tgt)
-				fdt->detectAndCompute(imTargetGray, maskTgt, keypointsTarget, descriptorsTarget);
-			}
-			break;
-		case OCW_FD_SURF:
-			{
-			int minHessian = 400; //TODO: as input parameter
-			Ptr<xfeatures2d::SURF> fdt = xfeatures2d::SURF::create(minHessian);
-			if (src)
-				fdt->detectAndCompute(imSourceGray, maskSrc, keypointsSource, descriptorsSource);
-			if (tgt)
-				fdt->detectAndCompute(imTargetGray, maskTgt, keypointsTarget, descriptorsTarget);
-			}
-			break;
-		case OCW_FD_SIFT:
-			{
-			Ptr<xfeatures2d::SIFT> fdt = xfeatures2d::SIFT::create();
-			if (src)
-				fdt->detectAndCompute(imSourceGray, maskSrc, keypointsSource, descriptorsSource);
-			if (tgt)
-				fdt->detectAndCompute(imTargetGray, maskTgt, keypointsTarget, descriptorsTarget);
-			}
-			break;
-		case OCW_FD_FAST_DAISY:
-			{
-			Ptr<FastFeatureDetector> fkp = FastFeatureDetector::create(); 
-			Ptr<xfeatures2d::DAISY> fdt = xfeatures2d::DAISY::create();
-			if (src)
-			{
-				fkp->detect(imSourceGray, keypointsSource, maskSrc);
-				if (maxSrcKeys > 0)
-					KeyPointsFilter::retainBest(keypointsSource, maxSrcKeys);
-				fdt->compute(imSourceGray, keypointsSource, descriptorsSource);
-			}
-			if (tgt)
-			{
-				fkp->detect(imTargetGray, keypointsTarget, maskTgt);
-				if (maxTgtKeys > 0)
-					KeyPointsFilter::retainBest(keypointsTarget, maxTgtKeys);
-				fdt->compute(imTargetGray, keypointsTarget, descriptorsTarget);
-			}	
-			}
-			break;
-		case OCW_FD_FAST_FREAK:
-			{
-			Ptr<FastFeatureDetector> fkp = FastFeatureDetector::create(); 
-			Ptr<xfeatures2d::FREAK> fdt = xfeatures2d::FREAK::create();
-			if (src)
-			{
-				fkp->detect(imSourceGray, keypointsSource, maskSrc);
-				if (maxSrcKeys > 0)
-					KeyPointsFilter::retainBest(keypointsSource, maxSrcKeys);
-				fdt->compute(imSourceGray, keypointsSource, descriptorsSource);
-			}
-			if (tgt)
-			{
-				fkp->detect(imTargetGray, keypointsTarget, maskTgt);
-				if (maxTgtKeys > 0)
-					KeyPointsFilter::retainBest(keypointsTarget, maxTgtKeys);
-				fdt->compute(imTargetGray, keypointsTarget, descriptorsTarget);
-			}
-			}
-			break;
-		default:
-			return OCW_ERR_BAD_PARAM;
-		}
-	// initialize last homography data
-	lastHomography.fType = type;
-	lastHomography.maxSrcKeys = maxSrcKeys;
-	lastHomography.maxTgtKeys = maxTgtKeys;
-	lastHomography.initMinMatches = 0;
-	lastHomography.inliers = 0;
-	lastHomography.outliers = 0;
+	objDetector = new TocvObjDetect(imgSource, imgTarget, alphaSource, alphaTarget, maskSource, maskTarget, &imgExport, &alphaExport);
 	return 0;
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - createn obj detector
+//-------------------------------------------------------------------------------------------------
+int ocvOdEnd(void)
+{
+	if (objDetector)
+		delete objDetector;
+	objDetector = 0;
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - features2d detect and compute
+//-------------------------------------------------------------------------------------------------
+int ocvOdCalcFeatures(TFeature2DType type, TFeature2DChoice choice, int maxSrcKeys, int maxTgtKeys)
+{
+	if (objDetector == NULL)
+		return OCW_ERR_NULL_OBJECT;
+	return objDetector->CalcFeatures2D(type, choice, maxSrcKeys, maxTgtKeys);
 }
 //-------------------------------------------------------------------------------------------------
 // DLL entry - calculate good matches
 //-------------------------------------------------------------------------------------------------
-int ocvCalcMatches(TMatchType type, float matchParam, bool exportImage)
+int ocvOdCalcMatches(TMatchType type, float matchParam, bool exportImage)
 {
-	bool brutala = false;
-	std::vector< std::vector< DMatch> > matchlist;
-	std::vector<DMatch> good_matches;
-	matches.clear();
-	//matchlist.clear();
-	switch (type)
-	{
-	case OCW_MT_BRUTE_HAMMING:
-	{
-		if (descriptorsSource.type() != CV_8U) 
-			descriptorsSource.convertTo(descriptorsSource, CV_8U);
-		if (descriptorsTarget.type() != CV_8U)
-			descriptorsTarget.convertTo(descriptorsTarget, CV_8U);
-		brutala = true;
-		Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
-		matcher->match(descriptorsSource, descriptorsTarget, matches, noArray());
-	}
-	break;
-	case OCW_MT_BFM:
-	{
-		Ptr<BFMatcher> matcher = BFMatcher::create(NORM_L2);  // brute with knn possible
-		matcher->knnMatch(descriptorsSource, descriptorsTarget, matchlist, 2, noArray(), false);  // find the best 2
-	}
-	break;
-	case OCW_MT_FLANN:
-	{
-		if (descriptorsSource.type() != CV_32F) 
-			descriptorsSource.convertTo(descriptorsSource, CV_32F);
-		if (descriptorsTarget.type() != CV_32F)
-			descriptorsTarget.convertTo(descriptorsTarget, CV_32F);
-		Ptr<FlannBasedMatcher>matcher = FlannBasedMatcher::create(); // FLANN - Fast Library for Approximate Nearest Neighbors
-		matcher->knnMatch(descriptorsSource, descriptorsTarget, matchlist, 2, noArray());  // find the best 2
-	}
-	break;
-	default:
-		return OCW_ERR_BAD_PARAM;
-	}
-	if (brutala)
-	{
-		// Sort matches by score
-		std::sort(matches.begin(), matches.end());
-		// Remove not so good matches - so, so
-		const int numGoodMatches = (int)((float)matches.size() * matchParam);
-		matches.erase(matches.begin() + numGoodMatches, matches.end());
-	}
-	else
-	{
-		for (unsigned int i = 0; i < matchlist.size(); ++i)
-		{
-			// Apply NNDR
-			if (matchlist[i][0].distance <= matchParam * matchlist[i][1].distance)
-				good_matches.push_back(matchlist[i][0]);
-		}
-		matches = good_matches;
-
-	}
-	if (matches.size() < lastHomography.initMinMatches)
-		return OCW_ERR_NO_EXPORT;
-	// Draw top matches
-	if (exportImage)
-	{
-		drawMatches(imgSource, keypointsSource, imgTarget, keypointsTarget, matches, imgExport);
-		alphaExport = Mat();
-	}
-	else
-		imgExport = Mat();
-	// save for recalculation
-	lastHomography.mType = type;
-	lastHomography.matchParam = matchParam;
-	lastHomography.matches = (int)matches.size();
-	return 0; 
+	if (objDetector == NULL)
+		return OCW_ERR_NULL_OBJECT;
+	return objDetector->CalcMatches(type, matchParam, exportImage);
 }
 //-------------------------------------------------------------------------------------------------
 // DLL entry - calculate homography
 //-------------------------------------------------------------------------------------------------
-int ocvCalcHomography(unsigned int minMatches, THomographyType type, bool exportImage, bool addAlpha, bool warpCrop)
+int ocvOdCalcHomography(unsigned int minMatches, THomographyType type, bool exportImage, bool addAlpha, bool warpCrop)
 {
-	//TODO: check if previous steps are fullfiled
-	// Extract location of good matches
-	std::vector<Point2f> points1, points2;
-
-	for (size_t i = 0; i < matches.size(); i++)
-	{
-		points1.push_back(keypointsSource[matches[i].queryIdx].pt);
-		points2.push_back(keypointsTarget[matches[i].trainIdx].pt);
-	}
-	if (points1.size() < minMatches)
-	{
-		if (exportImage)
-			imgExport = Mat();
-		return OCW_ERR_NO_EXPORT;
-	}
-	// Find homography
-	int method;
-	switch (type)
-	{
-	case OCW_HOMO_LS:
-		method = 0;
-		break;
-	case OCW_HOMO_RANSAC:
-		method = RANSAC;
-		break;
-	case OCW_HOMO_LMEDS:
-		method = LMEDS;
-		break;
-	case OCW_HOMO_RHO:
-		method = RHO;
-		break;
-	default:
-		return OCW_ERR_BAD_PARAM;
-	}
-	// get homography
-	homography = findHomography(points1, points2, homoMask, method);
-	if (homography.empty())
-		return OCW_ERR_EMPTY_DATA;
-	// Use homography to warp image
-	if (exportImage)
-	{
-		Size size = imgTarget.size();
-		// calc bounding box
-		std::vector<Point> points;
-		Point pt;
-		// top - left
-		pt.x = 0;
-		pt.y = 0;
-		points.push_back(pt);
-		// bottom - left
-		pt.x = 0;
-		pt.y = imgSource.rows - 1;
-		points.push_back(pt);
-		// bottom - right
-		pt.x = imgSource.cols - 1;
-		pt.y = imgSource.rows - 1;
-		points.push_back(pt);
-		// top - right
-		pt.x = imgSource.cols - 1;
-		pt.y = 0;
-		points.push_back(pt);
-		//
-		Rect bb = TCommonHelper::spComputePerspectiveBoundBox(points, homography);
-		// check for negative values
-		if (bb.x < 0)
-		{
-			bb.width += bb.x;
-			bb.x = 0;
-		}
-		if (bb.y < 0)
-		{
-			bb.height += bb.y;
-			bb.y = 0;
-		}
-		// check for range
-		int over;
-		over = imgTarget.cols - (bb.width + bb.x);
-		if (over < 0)
-			bb.width += over;
-		over = imgTarget.rows - (bb.height + bb.y);		
-		if (over < 0)
-			bb.height += over;
-		lastHomography.bbTop = bb.y;
-		lastHomography.bbLeft = bb.x;
-		lastHomography.bbHeight = bb.height;
-		lastHomography.bbWidth = bb.width;
-		//
-		warpPerspective(imgSource, workImage, homography, size);
-		if (alphaSource.empty())
-		{
-			if (addAlpha)
-			{
-				Mat alpha = Mat(imgSource.rows, imgSource.cols, CV_8UC1, Scalar(255));
-				warpPerspective(alpha, workAlpha, homography, size);
-			}
-			else
-				workAlpha = Mat();
-		}
-		else
-			warpPerspective(alphaSource, workAlpha, homography, size);
-		// crop output image
-		if (warpCrop)
-		{
-			lastHomography.shiftX = bb.x; 
-			lastHomography.shiftY = bb.y; 
-			Mat out = Mat(workImage, bb);
-			imgExport = Mat(bb.height, bb.width, workImage.type());
-			out.copyTo(imgExport);
-			if (addAlpha)
-			{
-				out = Mat(workAlpha, bb);
-				alphaExport = Mat(bb.height, bb.width, CV_8UC1);
-				out.copyTo(alphaExport);
-			}
-		}
-		else
-		{
-			lastHomography.shiftX = lastHomography.shiftY = 0;
-			imgExport = workImage;
-			if (addAlpha)
-				alphaExport = workAlpha;
-		}
-	}
-	else
-	{
-		imgExport = Mat();
-		workImage = Mat();
-		workAlpha = Mat();
-	}
-	// save for recalculation
-	lastHomography.minMatches = minMatches;
-	if (lastHomography.initMinMatches == 0)
-		lastHomography.initMinMatches = minMatches;
-	lastHomography.hType = type;
-	lastHomography.exportImage = exportImage;
-	lastHomography.addAlpha = addAlpha;
-	lastHomography.warpCrop = warpCrop;
-	lastHomography.inliers = 0;
-	lastHomography.outliers = 0;
-	// get inliers
-	if (homoMask.step == 0)
-		return OCW_ERR_EMPTY_DATA;
-	bool value;
-	for (int i = 0; i < homoMask.rows; i++)
-	{
-		value = homoMask.at<bool>(i, 0);
-		if (value)
-			lastHomography.inliers++;
-		else
-			lastHomography.outliers++;
-	}
-	return 0;
+	if (objDetector == NULL)
+		return OCW_ERR_NULL_OBJECT;
+	return objDetector->CalcHomography(minMatches, type, exportImage, addAlpha, warpCrop);
 }
 //-------------------------------------------------------------------------------------------------
-// DLL entry - recaulcalte homography (outliers -> matches)
+// DLL entry - reduce features
 //-------------------------------------------------------------------------------------------------
-int ocvReduceFeatures2D(TFeature2DReduction redType, bool exportMatchImage)
+int ocvOdReduceFeatures(TFeature2DReduction redType, bool exportMatchImage)
 {
-	if (homoMask.step == 0)
-		return OCW_ERR_EMPTY_DATA;
-	if (matches.size() != homoMask.rows)
-		return  OCW_ERR_BAD_DATA;  //bad data
-	bool value;
-	int remRows, rcMatch;
-	//BYTE *data = (BYTE*)(homoMask.data);
-	std::vector<DMatch> newMatches;
-	switch (redType)
+	if (objDetector == NULL)
+		return OCW_ERR_NULL_OBJECT;
+	return objDetector->ReduceFeatures2D(redType, exportMatchImage);
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - clusterize features
+//-------------------------------------------------------------------------------------------------
+int ocvOdClusterizeFeatures(int clusterNum, bool target, int maxIters, double epsilon, int attempts, bool flagKpp)
+{
+	if (objDetector == NULL)
+		return OCW_ERR_NULL_OBJECT;
+	double compactness = 0.0;
+	// currently, always on target kpts/desc
+	if (clusterNum <= 0)	// try elbow method 
 	{
-		case OCW_HOSR_OUTLIERS:		// outliers to matches
-			for (int i = 0; i < homoMask.rows; i++) // must be equal the size of matches
-			{
-				value = homoMask.at<bool>(i, 0);
-				if (!value)	// move only outliers
-					newMatches.push_back(matches[i]);
-			}
-			// copy new matches to matches vector
-			matches.clear();
-			matches = newMatches;
-			rcMatch = 0;
-			break;
-		case  OCW_HOSR_RKD_ASIS:
-		case  OCW_HOSR_RKD_ADJUST:
-			if (!lastHomography.exportImage)
-				return OCW_ERR_NO_EXPORT;
-			if (workImage.empty())
-				return OCW_ERR_NO_EXPORT;
-			if (workAlpha.empty())
-				return OCW_ERR_NO_EXPORT;
-			remRows = TCommonHelper::spReduceKpds(keypointsTarget, descriptorsTarget, workAlpha, 0x00, lastHomography.initMinMatches);
-			if (remRows == 0)
-				return OCW_ERR_EMPTY_DATA;
-			// rule of thumb: we'll change minmatches to 1/4 of previous match ti avoid "stupid" warping
-			if (redType == OCW_HOSR_RKD_ADJUST)
-			{
-				lastHomography.minMatches = (int)matches.size() >> 2; // at least 1/4 of original
-				if (lastHomography.minMatches < lastHomography.initMinMatches)
-					lastHomography.minMatches = lastHomography.initMinMatches;
-			}
-			rcMatch = ocvCalcMatches(lastHomography.mType, lastHomography.matchParam, exportMatchImage); 
-			break;
-		default:	// target mask
-			if (maskTarget.empty())
-				return OCW_ERR_EMPTY_DATA;
-			if (maskTarget.rows != roimTarget.rows && maskTarget.cols != roimTarget.cols)
-				return  OCW_ERR_BAD_DATA;  
-			remRows = TCommonHelper::spReduceKpds(keypointsTarget, descriptorsTarget, maskTarget, 0x00, lastHomography.initMinMatches);
-			if (remRows == 0)
-				return OCW_ERR_EMPTY_DATA;
-			rcMatch = ocvCalcMatches(lastHomography.mType, lastHomography.matchParam, exportMatchImage); 
-			break;
-	}
-	return rcMatch;
+		if (clusterNum == 0)
+			clusterNum = objDetector->ClusterKDB(maxIters, epsilon, attempts, flagKpp);
+		else if (clusterNum == -1)
+			clusterNum = objDetector->ClusterKFlann(32, 100); // test
+	}	
+	compactness = objDetector->Clusterize(clusterNum, maxIters, epsilon, attempts, flagKpp);
+	return 0;
 }
 //-------------------------------------------------------------------------------------------------
 // DLL entry -  recalc homography
 //-------------------------------------------------------------------------------------------------
-int ocvRecalcHomography(void)
+int ocvOdRecalcHomography(void)
 {
-	if (homoMask.step == 0)
-		return OCW_ERR_EMPTY_DATA;
-	return ocvCalcHomography(lastHomography.minMatches, lastHomography.hType, lastHomography.exportImage, lastHomography.addAlpha, lastHomography.warpCrop);
+	if (objDetector == NULL)
+		return OCW_ERR_NULL_OBJECT;
+	return objDetector->RecalcHomography();
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry -  calculate norm
+//-------------------------------------------------------------------------------------------------
+int ocvOdCalcNorm(TNormType normType, bool normGray)
+{
+	if (objDetector == NULL)
+		return OCW_ERR_NULL_OBJECT;
+	return objDetector->CalcNorm(normType, normGray);
 }
 //-------------------------------------------------------------------------------------------------
 // DLL entry -  get homography data
 //-------------------------------------------------------------------------------------------------
-int ocvGetHomographyData(SocvHomography &homoData)
+int ocvOdGetHomographyData(SocvHomography &homoData)
 {
-	homoData = lastHomography;
+	homoData = objDetector->GetLastHomography();
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
-// DLL entry - clear features data
+// DLL entry - createn obj detector
 //-------------------------------------------------------------------------------------------------
-int ocvClearFeatures2D(void)
+int ocvTmBegin(void)
 {
-	matches.clear();
-	keypointsSource.clear();
-	keypointsTarget.clear();
-	descriptorsSource = Mat();
-	descriptorsTarget = Mat();
-	workImage = Mat();
-	workAlpha = Mat();
+	int nRet = ocvne_checkImgAndRoi();
+	if (nRet)
+		return nRet;
+	objTemplate = new TocvTemplateMatcher(imgSource, imgTarget);
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry - createn obj detector
+//-------------------------------------------------------------------------------------------------
+int ocvTmEnd(void)
+{
+	if (objTemplate)
+		delete objTemplate;
+	objTemplate = 0;
+	return 0;
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry -  template matching - find first
+//-------------------------------------------------------------------------------------------------
+int ocvTmMatchFirst(TTemplateMatchingModes tplMode)
+{
+	if (objTemplate == NULL)
+		return OCW_ERR_NULL_OBJECT;
+	return objTemplate->MatchFirst(tplMode);
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry -  template matching - find next
+//-------------------------------------------------------------------------------------------------
+int ocvTmMatchNext(TTemplateReduction reductType, double threshold, int mdist)
+{
+	if (objTemplate == NULL)
+		return OCW_ERR_NULL_OBJECT;
+	return objTemplate->MatchNext(reductType, threshold, mdist);
+}
+//-------------------------------------------------------------------------------------------------
+// DLL entry -  template matching - get template position
+//-------------------------------------------------------------------------------------------------
+int ocvTmGetData(SocvTemplateData &tmData)
+{
+	if (objTemplate == NULL)
+		return OCW_ERR_NULL_OBJECT;
+	tmData = objTemplate->GetData();
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
@@ -2261,7 +1927,7 @@ int ocvStaticSaliency(TSaliencyType type)
 //-------------------------------------------------------------------------------------------------
 // DLL entry - fllod fill simple
 //-------------------------------------------------------------------------------------------------
-extern "C" OCV_API int ocvFloodFillSimple(SocvPoint seed, int tolLo, int tolHi, int connectivity, int fillMode, unsigned char *pixBGR)
+int ocvFloodFillSimple(SocvPoint seed, int tolLo, int tolHi, int connectivity, int fillMode, unsigned char *pixBGR)
 {
 	// fill with value under the seeding point
 	int nRet = ocvne_checkImgAndRoi();
@@ -2290,7 +1956,7 @@ extern "C" OCV_API int ocvFloodFillSimple(SocvPoint seed, int tolLo, int tolHi, 
 //-------------------------------------------------------------------------------------------------
 // DLL entry - fllod fill simple
 //-------------------------------------------------------------------------------------------------
-extern "C" OCV_API int ocvFloodFillMasked(SocvPoint seed, int tolLo, int tolHi, int connectivity, int fillMode, unsigned char *pixBGR, int maskVal)
+int ocvFloodFillMasked(SocvPoint seed, int tolLo, int tolHi, int connectivity, int fillMode, unsigned char *pixBGR, int maskVal)
 {
 	// fill with value under the seeding point
 	int nRet = ocvne_checkImgAndRoi();
@@ -2321,9 +1987,9 @@ extern "C" OCV_API int ocvFloodFillMasked(SocvPoint seed, int tolLo, int tolHi, 
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
-// DLL entry - detect image difference
+// DLL entry - detect image difference by dithering
 //-------------------------------------------------------------------------------------------------
-extern "C" OCV_API int ocvImageDiff(int patchRadius, int radius, int iterations, int err_tol, int output_threshold, int out_type)
+int ocvImageDiff(int patchRadius, int radius, int iterations, int err_tol, int output_threshold, int out_type)
 {
 	int nRet = ocvne_checkImgAndRoi();
 	if (nRet)

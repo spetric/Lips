@@ -77,13 +77,22 @@ extern "C" OCV_API int ocvGaborFilter(unsigned int kernelSize = 31, double theta
 extern "C" OCV_API int ocvGaborius(unsigned int step = 16, unsigned int kernelSize = 31, double sigma = 4, double lambda = 10, double gamma = 0.5, double psi = 0, double ksFactor = 1.5);
 extern "C" OCV_API int ocvTrigonometrius(int fType = OCW_KF_COS, unsigned int step = 16, unsigned int kernelSize = 31, double hSigma = 0.5, double freq = 3, double ksFactor = 1.5, int margin = -1, double vSigma = 0);
 // feature detection
-extern "C" OCV_API int ocvCalcFeatures2D(TFeature2DType type = OCW_FD_AKAZE,  TFeature2DChoice choice = OCW_FCH_SRCTGT, int maxSrcKeys = 0, int maxTgtKeys = 0);
-extern "C" OCV_API int ocvCalcMatches(TMatchType type = OCW_MT_BRUTE_HAMMING, float matchParam = 0.15f, bool exportImage = true);
-extern "C" OCV_API int ocvCalcHomography(unsigned int MinMatches = 6, THomographyType type = OCW_HOMO_RANSAC, bool exportImage = true, bool addAlpha = true, bool warpCrop = false);
-extern "C" OCV_API int ocvReduceFeatures2D(TFeature2DReduction redType = OCW_HOSR_OUTLIERS, bool exportMatchImage = false);
-extern "C" OCV_API int ocvRecalcHomography(void);
-extern "C" OCV_API int ocvGetHomographyData(SocvHomography &homoData);
-extern "C" OCV_API int ocvClearFeatures2D(void);
+extern "C" OCV_API int ocvOdBegin(void);
+extern "C" OCV_API int ocvOdEnd(void);
+extern "C" OCV_API int ocvOdCalcFeatures(TFeature2DType type = OCW_FD_AKAZE,  TFeature2DChoice choice = OCW_FCH_SRCTGT, int maxSrcKeys = 0, int maxTgtKeys = 0);
+extern "C" OCV_API int ocvOdCalcMatches(TMatchType type = OCW_MT_BRUTE_HAMMING, float matchParam = 0.15f, bool exportImage = true);
+extern "C" OCV_API int ocvOdCalcHomography(unsigned int MinMatches = 6, THomographyType type = OCW_HOMO_RANSAC, bool exportImage = true, bool addAlpha = true, bool warpCrop = false);
+extern "C" OCV_API int ocvOdReduceFeatures(TFeature2DReduction redType = OCW_HOSR_OUTLIERS, bool exportMatchImage = false);
+extern "C" OCV_API int ocvOdClusterizeFeatures(int clusterNum, bool target = true, int maxIters = 10, double epsilon = 0.1, int attempts = 3, bool flagKpp = true);
+extern "C" OCV_API int ocvOdRecalcHomography(void);
+extern "C" OCV_API int ocvOdCalcNorm(TNormType normType = OCW_NORM_L2, bool normGray = false);
+extern "C" OCV_API int ocvOdGetHomographyData(SocvHomography &homoData);
+// template matching
+extern "C" OCV_API int ocvTmBegin(void);
+extern "C" OCV_API int ocvTmEnd(void);
+extern "C" OCV_API int ocvTmMatchFirst(TTemplateMatchingModes tplMode = OCW_TEMPLMODE_CCORR_NORMED);
+extern "C" OCV_API int ocvTmMatchNext(TTemplateReduction reductType = OCW_TEMPLREDUCT_MDIST, double threshold = 0.9, int mdist = 0);
+extern "C" OCV_API int ocvTmGetData(SocvTemplateData &tmData);
 // blob detector
 extern "C" OCV_API int ocvBlobGetDefaultParams(SocvBlobParams *blobParams);
 extern "C" OCV_API int ocvBlobDetector(SocvBlobParams *blobParams, SocvBlobData *blobData, bool drawKpts2Target = true);

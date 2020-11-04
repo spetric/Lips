@@ -45,6 +45,10 @@ object frmLips: TfrmLips
       object tabNormal: TcxTabSheet
         Caption = 'Single image view'
         ImageIndex = 0
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object panSingle: TPanel
           Left = 0
           Top = 0
@@ -329,6 +333,10 @@ object frmLips: TfrmLips
     object cxTabSheet1: TcxTabSheet
       Caption = 'Lua script'
       ImageIndex = 0
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object panCtrls: TPanel
         Left = 0
         Top = 0

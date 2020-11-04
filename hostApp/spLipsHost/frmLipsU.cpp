@@ -56,7 +56,7 @@ TfrmLips *frmLips;
 __fastcall TfrmLips::TfrmLips(TComponent* Owner)
 	: TForm(Owner)
 {
-Caption = Caption + " 2020.08. ";
+Caption = Caption + " 2020.11. ";
 #ifdef __WIN32__
 	Caption = Caption + " 32-bit";
 #else

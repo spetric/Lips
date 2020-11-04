@@ -36,6 +36,12 @@
     <ClInclude Include="imageDiff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ocvObjDetect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ocvTemplateMatcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -54,6 +60,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="imageDiff.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ocvObjDetect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ocvTemplateMatcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

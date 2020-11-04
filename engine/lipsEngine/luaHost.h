@@ -31,7 +31,8 @@ private:
 	int FDKIdx;
 	SocvContourData FExportContours;
 	SocvContourPts *FCurrentContour;
-    SocvHomography FLastHomography;
+	SocvHomography FLastHomography;
+    SocvTemplateData  FTemplData;
 	void clearData(TClearType type);
 protected:
 public:
